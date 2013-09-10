@@ -12,6 +12,6 @@ int main()
     cin >>archivoEntrada;
     lex = new lexico(archivoEntrada);
     archivoEntrada = lex->siguienteToken();
-
-    return 0;
+    lex->~lexico();
+    return EXIT_SUCCESS;
 }
