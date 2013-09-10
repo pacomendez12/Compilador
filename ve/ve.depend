@@ -1,0 +1,11 @@
+# depslib dependency file v1.0
+1378854720 source:/home/pacomendez/compiladores/ve/main.cpp
+	<iostream>
+	"lexico.h"
+
+1378854782 /home/pacomendez/compiladores/ve/lexico.h
+	<string>
+
+1378854691 source:/home/pacomendez/compiladores/ve/lexico.cpp
+	"lexico.h"
+
