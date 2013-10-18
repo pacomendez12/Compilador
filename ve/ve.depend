@@ -1,15 +1,42 @@
 # depslib dependency file v1.0
-1378855913 source:/home/pacomendez/compiladores/ve/main.cpp
+1380612561 source:/home/pacomendez/compiladores/ve/main.cpp
 	<iostream>
 	"lexico.h"
 
-1378855738 /home/pacomendez/compiladores/ve/lexico.h
+1380611901 /home/pacomendez/compiladores/ve/lexico.h
+	<string>
+	<cstdio>
+	<cstdlib>
+	<fstream>
+	<iostream>
+	<cctype>
+	"parTokenLexema.h"
+	"Errores.h"
+
+1381499130 source:/home/pacomendez/compiladores/ve/lexico.cpp
+	<sstream>
+	"lexico.h"
+
+1379943426 source:/media/pacomendez/8ca7b2b4-5fd0-4c8b-80c3-1816cf1b22f7/home/pacomendez/compiladores/ve/lexico.cpp
+	"lexico.h"
+
+1379939946 /media/pacomendez/8ca7b2b4-5fd0-4c8b-80c3-1816cf1b22f7/home/pacomendez/compiladores/ve/lexico.h
 	<string>
 	<cstdio>
 	<cstdlib>
 	<fstream>
 	<iostream>
 
-1378855753 source:/home/pacomendez/compiladores/ve/lexico.cpp
+1379943598 source:/media/pacomendez/8ca7b2b4-5fd0-4c8b-80c3-1816cf1b22f7/home/pacomendez/compiladores/ve/main.cpp
+	<iostream>
 	"lexico.h"
+
+1380148483 /home/pacomendez/compiladores/ve/parTokenLexema.h
+	<string>
+
+1380148483 source:/home/pacomendez/compiladores/ve/parTokenLexema.cpp
+	"parTokenLexema.h"
+
+1380610793 /home/pacomendez/compiladores/ve/Errores.h
+	<string>
 

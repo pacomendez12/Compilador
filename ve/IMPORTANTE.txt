@@ -1,0 +1,12 @@
+
+IMPORTANTE!!!!
+
+El proyecto está hecho en C++, se pueda abrir con codeblocks 12.11
+el binario que contiene fue generado para linux, por lo tanto se requiere 
+volver a compilar el ejecutable para otros sistemas operativos
+
+
+
+
+Nombre: Francisco de Jesús Méndez Pelayo
+Código: 209365818
