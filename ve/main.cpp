@@ -2,13 +2,22 @@
 #include "lexico.h"
 
 
+/** \brief Ve 0.0.1
+ *
+ * Compilador para lenguaje Ve (version 0.0.1)
+ */
+
+
 int main()
 {
     /*aqui comienza la ejecución del compilador*/
     lexico * lex;
     string archivoEntrada;
+    cout << sizeof(int *) << endl;
     cout << "ingresa el nombre del archivo a compilar: ";
     cin >>archivoEntrada;
+
+
     lex = new lexico(archivoEntrada);
     /*archivoEntrada = lex->siguienteToken();*/
     parTokenLexema * ptl;
@@ -19,10 +28,11 @@ int main()
         if(ptl != NULL){
             //if(ptl->getToken().compare("cos")!=0 && ptl->getToken().compare("com")!=0){
                 cout << ptl->getToken() << "\t\t\t\t"<< ptl->getLexema() <<endl;
-                cout << "----------------------------------------------" << endl;
+                //cout << "----------------------------------------------" << endl;
             //}
             /*liberación de memoria*/
-            ptl->~parTokenLexema();
+            /*ptl->~parTokenLexema();*/
+            delete ptl;
         }
     }
     while(ptl != NULL);
@@ -39,5 +49,7 @@ int main()
         cout <<  "________________________________________________________________________________" << endl;
     }
     lex->~lexico();
+    getchar();
+    getchar();
     return EXIT_SUCCESS;
 }
