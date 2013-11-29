@@ -1,0 +1,21 @@
+N,I,I,0,0,P,E,0,0,FACTO,#,
+FACTO,F,E,1,0,#,
+X,V,E,0,0,#,
+_E1,I,I,10,0,#,
+_E2,I,I,20,0,#,
+_E3,I,I,16,0,#,
+_E4,I,I,24,0,#,
+_P,I,I,21,0,#,
+@
+1 STO 0,N
+2 LOD N,0
+3 LIT 0,0
+4 OPR 0,14
+5 JMC F,_E1
+6 LIT 1,0
+7 STO 0,FACTO
+8 OPR 0,1
+9 JMP 0,_E2
+10 LOD N,0
+11 LOD _E3,0
+12

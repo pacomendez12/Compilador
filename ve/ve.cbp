@@ -32,7 +32,10 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="Errores.cpp" />
 		<Unit filename="Errores.h" />
+		<Unit filename="TablaDeSimbolos.cpp" />
+		<Unit filename="TablaDeSimbolos.h" />
 		<Unit filename="definiciones.h" />
 		<Unit filename="lexico.cpp" />
 		<Unit filename="lexico.h" />

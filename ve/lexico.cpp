@@ -1,4 +1,5 @@
 #include <sstream>
+#include <cstdio>
 #include "lexico.h"
 
 
@@ -14,51 +15,51 @@ const int ERR = -1;
  */
 const int mat_trans[38][24] =
 {
-    {1,2,6,6,1,1,1,23,23,1,12,12,29,35,17,19,21,15,13,24,26,ACP,ACP,36},
-    {1,1,1,1,1,1,1,ACP,ACP,1,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ACP,3,3,ACP,ACP,4,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ACP,3,3,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ERR,5,5,5,ERR,ERR,5,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR},
-    {ACP,5,5,5,ACP,ACP,5,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ACP,6,6,6,ACP,ACP,ACP,ACP,7,9,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ERR,8,8,8,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR},
-    {ACP,8,8,8,ACP,ACP,ACP,ACP,ACP,9,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ERR,11,11,11,ERR,ERR,ERR,ERR,ERR,ERR,10,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR},
-    {ERR,11,11,11,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR},
-    {ACP,11,11,11,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,14,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,16,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,18,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,20,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,22,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,25,24,24,24,24},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,24},
-    {27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,ERR,ERR,ERR},
-    {ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,28,ERR,ERR,ERR},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,30,32,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,31,30,30},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {32,32,32,32,32,32,32,32,32,32,32,32,32,33,32,32,32,32,32,32,32,32,32,32},
-    {32,32,32,32,32,32,32,32,32,32,32,32,34,32,32,32,32,32,32,32,32,32,32,32},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,37,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
-    {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP}
+    /*0 */ {1,2,6,6,1,1,1,23,23,1,12,12,29,35,17,19,21,15,13,24,26,ACP,ACP,36},
+    /*1 */ {1,1,1,1,1,1,1,ACP,ACP,1,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*2 */ {ACP,3,3,ACP,ACP,4,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*3 */ {ACP,3,3,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*4 */ {ERR,5,5,5,ERR,ERR,5,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR},
+    /*5 */ {ACP,5,5,5,ACP,ACP,5,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*6 */ {ACP,6,6,6,ACP,ACP,ACP,ACP,7,9,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*7 */ {ERR,8,8,8,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR},
+    /*8 */ {ACP,8,8,8,ACP,ACP,ACP,ACP,ACP,9,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*9 */ {ERR,11,11,11,ERR,ERR,ERR,ERR,ERR,ERR,10,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR},
+    /*10*/ {ERR,11,11,11,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR},
+    /*11*/ {ACP,11,11,11,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*12*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*13*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,14,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*14*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*15*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,16,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*16*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*17*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,18,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*18*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*19*/ {ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,20,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR},
+    /*20*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*21*/ {ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,22,ERR,ERR,ERR,ERR,ERR,ERR,ERR}, /*tenía error al usar &&*/
+    /*22*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*23*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*24*/ {24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,24,25,24,24,24,24},
+    /*25*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},/*tenia error alfabeticas*/
+    /*26*/ {27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,27,28,ERR,ERR,ERR},
+    /*27*/ {ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,ERR,28,ERR,ERR,ERR},
+    /*28*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*29*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,30,32,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*30*/ {30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,30,31,30,30},
+    /*31*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*32*/ {32,32,32,32,32,32,32,32,32,32,32,32,32,33,32,32,32,32,32,32,32,32,32,32},
+    /*33*/ {32,32,32,32,32,32,32,32,32,32,32,32,34,32,32,32,32,32,32,32,32,32,32,32},
+    /*34*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*35*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*36*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,37,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP},
+    /*37*/ {ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP,ACP}
 };
 
 const string palRes[]= { "interrumpe","valor","canal","const","continua",
                          "defecto","diferir","sino","desde","funcion","ir","ir_a","si",
                          "importar","interfaz","mapa","paquete","rango","regresa",
                          "selecciona","estructura","tipo","variable","caso","principal",
-                         "caracter","entero","real","alfanumerico","logico","enteross",
+                         "caracter","entero","real","alfabetico","logico","enteross",
                          "div","mod","var"
                        };
 
@@ -73,7 +74,8 @@ lexico::lexico(string nombre)
     }
     catch(ifstream::failure e)
     {
-        cerr << "Error intentando abrir el archivo fuente" << endl;
+        if(!editor_)
+            cout << "Error intentando abrir el archivo fuente" << endl;
         this->~lexico();
         exit(EXIT_FAILURE);
     }
@@ -82,8 +84,8 @@ lexico::lexico(string nombre)
     nIdx_= 0;
     nColumna_ = 0;
     beof_ = false;
-    contErrores = 0;
     errorComentario = false;
+    simboloActual_ = simboloAnterior_ = NULL;
 }/*fin del constructor*/
 
 /*destructor*/
@@ -100,12 +102,31 @@ parTokenLexema * lexico::siguienteToken()
     while(!analiza());
     if(!beof_)
     {
+        if(simboloAnterior_ != NULL)
+            delete simboloAnterior_;
+        simboloAnterior_ = simboloActual_;
         parTokenLexema * ptl = new parTokenLexema(sToken_,sLexema_);
+        simboloActual_ = ptl;
+#ifdef PRINT
+        if(!editor_)
+            cout << " " << sLexema_;
+#endif
         return ptl;
     }
     else
         return NULL;
 }/*fin de siguienteToken*/
+
+parTokenLexema * lexico::tokenAnterior()
+{
+    return simboloAnterior_;
+}
+
+parTokenLexema * lexico::tokenActual()
+{
+    return simboloActual_;
+}
+
 
 bool lexico::analiza()
 {
@@ -115,36 +136,42 @@ bool lexico::analiza()
     int estAnt = 0;
     int col = 0;
     bool flagEscape = false;
+    saltoDeLinea_ = false;
 
     while(estado != ACP && estado != ERR && beof_ == false) /*ciclo para determinar tokens completos*/
     {
         c = sigCaracter();
-        nColumna_++;
+        //nColumna_++;
         while(estado == 0 && (c == '\n' || c == '\t' || c == ' '))
         {
+            if(c == '\n')
+                saltoDeLinea_ = true;
             c = sigCaracter();
-            nColumna_++;
+            //nColumna_++;
         }/*eliminador de blancos*/
         if(beof_ == true)
         {
             if(estado == 32 || estado == 33 || estado == 24)
             {
+                string des;
                 errorComentario = true;
-                errores[contErrores].linea = nLinea_ - 1;
-                errores[contErrores].columna = nIdx_;
-                errores[contErrores].error = "";
-                errores[contErrores].lineaDeError = sLineaLeida_;
 
                 if(estado == 32 || estado == 33)
-                    errores[contErrores].descripcion = "EOF sin cerrar comentario";
+                    des = "EOF sin cerrar comentario";
                 else if(estado == 24)
-                    errores[contErrores].descripcion = "EOF sin cerrar cadena alfanumérica";
-                contErrores++;
+                    des = "EOF sin cerrar cadena alfanumérica";
+                stringstream ss;
+                string s;
+                ss << c;
+                ss >> s;
+                e.nuevoError(nLinea_ - 1, nIdx_, s,des,sLineaLeida_);
+
             }
             break;
         }
 
-        if(c == '\\' && flagEscape == false && estado == 26){
+        if(c == '\\' && flagEscape == false && estado == 26)
+        {
             flagEscape = true;
             sLexema_ += c;
             continue;
@@ -165,10 +192,6 @@ bool lexico::analiza()
                     antCaracter();
                 else  //errores de construcción
                 {
-                    errores[contErrores].linea = nLinea_ - 1;
-                    errores[contErrores].columna = nIdx_;
-                    errores[contErrores].error = sLexema_;
-                    errores[contErrores].lineaDeError = sLineaLeida_;
                     string s;
                     if(estAnt == 4)
                         s = "Símbolo no válido para hexadecimal";
@@ -182,8 +205,8 @@ bool lexico::analiza()
                         s = "Se esperaba & para operador lógico";
                     else if(estAnt == 27 || estAnt == 26)
                         s = "Se esperaba ' para cerrar caracter";
-                    errores[contErrores].descripcion = s;
-                    contErrores++;
+
+                    e.nuevoError(nLinea_ - 1, nIdx_, sLexema_,s,sLineaLeida_);
                 }
             }
         }
@@ -192,7 +215,16 @@ bool lexico::analiza()
         {
             estado = ACP;
         }
+        else
+        if((estAnt == 24 || estado == 24) && c =='\n'){
+            string s = "no se cerró la declaración de cadena";
+            sLexema_ = sLexema_.substr(0,sLexema_.length()-1);
+            e.nuevoError(nLinea_ - 1, nIdx_, sLexema_,s,sLineaLeida_);
+        }
     }/*fin del ciclo principal de tokens*/
+
+    nColumnaAnt_ = nColumna_;
+    nColumna_ = nIdx_;
 
     if(estado == ACP)  /*cuando se llegó a estado de aceptación*/
     {
@@ -313,6 +345,7 @@ void lexico::leeDeArchivo()  /*método auxiliar*/
         {
             sLineaLeidaAnterior_ = sLineaLeida_;
             nIdx_ = 0;
+            nColumnaAnt_ = 0;
             char tmp[TAM_MAX_BUFFER];
             try
             {
@@ -321,6 +354,10 @@ void lexico::leeDeArchivo()  /*método auxiliar*/
                 sLineaLeida_ = string(tmp);
                 sLineaLeida_+='\n';
                 nLinea_++;
+#ifdef PRINT
+                if(!editor_)
+                    cout << "\n["<< nLinea_ - 1 <<"] ";
+#endif
             }
             catch(ifstream::failure e)
             {
@@ -412,23 +449,104 @@ int lexico::colCar(char x, int estado)
         return 0;
     if(x > 15 || x < 0)  /*para evitar los retornos de carro */
     {
-        errores[contErrores].linea = nLinea_ - 1;
-        errores[contErrores].columna = nIdx_;
-        errores[contErrores].error = sLexema_;
         stringstream ss;
         ss << "Caracter inválido {" << x << "}";
-
-        errores[contErrores].descripcion = ss.str();
-        errores[contErrores].lineaDeError = sLineaLeida_;
         //cout << "ERROR: Caracter inválido <" << x << "> en la linea " << nLinea_ - 1 << " columna " << nColumna_ << endl;
         //cout << "----------------------------------------------" << endl;
         if(x < 0)// se avanza un caractér cuando se trata de una caractér Unicode
             sigCaracter();
-        contErrores++;
+
+
+        e.nuevoError(nLinea_ - 1, nIdx_,sLexema_,ss.str(),sLineaLeida_);
     }
     return ERR;
 }
 
+void
+lexico::nuevoError(string descripcion)
+{
+    e.nuevoError(nLinea_ - 1, nColumna_, sLexema_,descripcion,sLineaLeida_);
+}
+
+void
+lexico::imprimeErrores()
+{
+    if(e.getCantErrores() > 0)
+    {
+        if(!editor_)
+        {
+            /*Cuando no se activó la bandera de editor*/
+            cout << "\n\t\t\t\tERRORES" << endl;
+            cout <<  "+-------+---------+-----------+---------------------------------+--------------+" << endl;
+            cout <<  "| Linea | Columna |Error      |Descripcion\t\t\t|Linea completa|" <<endl;
+            //cout <<  "________________________________________________________________________________" << endl;
+            cout <<  "+-------+---------+-----------+---------------------------------+--------------+" << endl;
+            cout <<  "+-------+---------+-----------+---------------------------------+--------------+" << endl;
+            for(int i = 0 ; i < e.getCantErrores(); i++)
+            {
+                /*cout << errores[i].linea << "\t" <<errores[i].columna << "\t\t" << errores[i].error << "\t" << errores[i].descripcion<<
+                "\t" << errores[i].lineaDeError;*/
+                if(e.getError(i)->error.size() > 10)
+                    e.getError(i)->error = e.getError(i)->error.substr(0,10);
+                if(e.getError(i)->descripcion.size() > 34)
+                    e.getError(i)->descripcion = e.getError(i)->descripcion.substr(0,34);
+                if(e.getError(i)->lineaDeError.size() > 13)
+                    e.getError(i)->lineaDeError = e.getError(i)->lineaDeError.substr(0,13);
+                else
+                    e.getError(i)->lineaDeError = e.getError(i)->lineaDeError.substr(0,e.getError(i)->lineaDeError.size() - 1);
+                string str = e.getError(i)->lineaDeError;
+
+                printf("| %5d | %7d |%11s|%33s|%14s|\n",e.getError(i)->linea,e.getError(i)->columna,e.getError(i)->error.c_str(),e.getError(i)->descripcion.c_str(),e.getError(i)->lineaDeError.c_str());
+            }
+            cout <<  "+-------+---------+-----------+---------------------------------+--------------+" << endl;
+        }
+        else
+        {
+            /*cuando se especificó un editor*/
+            /*salida formateada*/
+            for(int i = 0 ; i < e.getCantErrores(); i++)
+            {
+                /*trim*/
+                e.getError(i)->lineaDeError = trim(e.getError(i)->lineaDeError);
+                printf("%d~%d~%s~%s~%s\n",e.getError(i)->linea,e.getError(i)->columna,e.getError(i)->error.c_str(),e.getError(i)->descripcion.c_str(),e.getError(i)->lineaDeError.c_str());
+            }
+        }
+    }
+}
+
+bool
+lexico::esConstanteLogica(string val)
+{
+    return esCteLog(val);
+}
+
+void
+lexico::setEditor(bool e)
+{
+    editor_ = e;
+}
+
+string
+lexico::trim(string c){
+    c.erase(c.find_last_not_of(" \n\r\t")+1);
+    unsigned int i;
+    for(i=0;i< c.length();i++){
+        if(c[i]!=' ' && c[i]!='\t' && c[i]!='\n')
+            break;
+    }
+    return c.substr(i);
+}
+
+bool
+lexico::HuboSaltoDeLinea(){
+    return saltoDeLinea_;
+}
+
+bool
+lexico::getEditor()
+{
+    return editor_;
+}
 
 /*Setter and getters ----------------------------------------------*/
 

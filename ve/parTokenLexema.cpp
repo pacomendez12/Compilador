@@ -13,3 +13,5 @@ string parTokenLexema::getLexema(){
 string parTokenLexema::getToken(){
     return sToken_;
 }
+
+parTokenLexema::~parTokenLexema(){}

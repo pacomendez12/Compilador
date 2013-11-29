@@ -1,8 +1,18 @@
-/*ñ&%$#dssdflkjdf		|@|¬·@·~@~¬[{þø→↓←ŧ¶đŋŋđð»]*/
+paquete principal
 
-var entero a[MAX][MAX];
+importar "fmt"
 
-funcion holaMundo(){
-	entero a:=5
-	real b:=5.24
+var (x real)
+
+var (x,t real)
+
+funcion holaMundo() entero{
+	var a,b real;
+	a :=5;
+	b :=5.24;
+}
+
+
+funcion pla() real{
+
 }

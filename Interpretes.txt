@@ -1,0 +1,98 @@
+GENERACIÓN DE CÓDIGO
+------------------------------------------------------------------------
+	+Real Machine (RM) -> Procesador Intel,AMD,ARM
+	+Virtual Machine (VM) -> PL/0, bytecode, inferno, P-CODE
+	
+	
+	PL/0 Program Language /0
+	Data Strcutures + Algorithms = programas
+	Nicklaus with
+	
+	
+	PL/0 (Máquina de pila)
+	------------------------------------------------
+	
+	| MNEMONICO	| dir |	dir2 |
+	
+	LOD Carga en pila cte o var
+	STO	Almacena en var sacando pila
+	JMP Salto incondicional (directo o indirecto)
+	JMC Salto condicional (directo o indirecto)
+	CAL	Lamada a una subrutina
+	OPR	0,0 fin(stop run o halt)
+	OPR 0,1 regresa según valor sobre pila
+	OPR 0,2 suma
+	OPR 0,3 resta
+	.
+	.
+	.
+	OPR 0,19 Lee
+	OPR 0,20 Escribe
+	OPR 0,22 Escribo con salto de linea
+	
+	
+	GENERACIÓN DE CÓDIGO
+	
+	"X:=5;"
+	
+	LIT 5,0
+	STO 0,X
+	
+	"x:=x+5;"
+	
+	LOD x,0
+	LIT 5,0
+	OPR 0,2
+	STO 0,x
+	
+	
+	
+	si a>b {max:=a;}
+	sino {max:=b}
+	
+	
+	10 LOD a,0
+	11 LOD b,0
+	12 OPR 0,10
+	13 JMC F,_E3
+	14 LOD a,0
+	15 STO 0,max
+	16 JMP 0,_E4
+	17 LOD b,0
+	18 STO 0,max
+	19
+	
+	tabla de simbolos:
+	_E3,I,I,17,0,#,
+	_E4,I,I,19,0,#,
+	
+	
+
+
+
+
+	
+	
+------------------------------------------------------------------------
+//codigo de 3 direcciones tiene sólo un operador
+
+//ejemplo
+if(x>3)
+	w=x*w+20;
+m = m / w;
+
+---------------
+código en 3 direcciones
+---------------
+t1=x>3
+if not(t1) goto A:
+t2=x*w
+w=t2+20
+A:m = m/w
+
+
+
+x[10]=w*x[h];
+--------------
+t1=x[h];
+x[10]=w*t1

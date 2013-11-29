@@ -1,0 +1,13 @@
+/home/pacomendez/compiladores/ve/lexico.cpp:12: warning: documented symbol `int Define la matriz de transición para el analizador léxico' was not declared or defined.
+[generated]:4: warning: included file lexico.h is not found. Check your EXAMPLE_PATH
+/home/pacomendez/compiladores/ve/lexico.h:41: warning: argument 'string' of command @param is not found in the argument list of lexico::lexico(string nombre)
+/home/pacomendez/compiladores/ve/lexico.h:41: warning: The following parameters of lexico::lexico(string nombre) are not documented:
+  parameter 'nombre'
+/home/pacomendez/compiladores/ve/parTokenLexema.h:20: warning: argument 'string' of command @param is not found in the argument list of parTokenLexema::parTokenLexema(string token, string lexema)
+/home/pacomendez/compiladores/ve/parTokenLexema.h:20: warning: argument 'string' of command @param is not found in the argument list of parTokenLexema::parTokenLexema(string token, string lexema)
+/home/pacomendez/compiladores/ve/parTokenLexema.h:20: warning: The following parameters of parTokenLexema::parTokenLexema(string token, string lexema) are not documented:
+  parameter 'token'
+  parameter 'lexema'
+/home/pacomendez/compiladores/ve/pharser.h:21: warning: argument 'string' of command @param is not found in the argument list of pharser::pharser(string archivo)
+/home/pacomendez/compiladores/ve/pharser.h:21: warning: The following parameters of pharser::pharser(string archivo) are not documented:
+  parameter 'archivo'

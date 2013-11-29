@@ -29,6 +29,7 @@ public:
      * \return string lexema
      */
     string getLexema();
+    ~parTokenLexema();
 
 private:
     string sToken_;
