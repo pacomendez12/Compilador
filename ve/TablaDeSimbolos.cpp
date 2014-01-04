@@ -23,3 +23,21 @@ Simbolo::formateaSimbolo(){
     aux += "#,";
     return aux;
 }
+
+string
+Locales::formateaLocal(){
+    string aux = "";
+    /*aux = nom+",";*/
+    aux += clase+",";
+    aux += tipo+",";
+    aux += dimen1+",";
+    aux += dimen2+",";
+    aux += procp+",";
+    return aux;
+}
+
+Locales::Locales(){
+    dimen1 = 100;
+    dimen2 = 200;
+    clase = "T";
+}

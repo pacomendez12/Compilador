@@ -548,6 +548,14 @@ lexico::getEditor()
     return editor_;
 }
 
+void
+lexico::avanzarHasta(string c){
+    string leido="";
+    do{
+        leido = siguienteToken()->getLexema();
+    }while(c != leido);
+}
+
 /*Setter and getters ----------------------------------------------*/
 
 int lexico::getLineas()

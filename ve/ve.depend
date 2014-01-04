@@ -5,7 +5,7 @@
 	<cstdlib>
 	"pharser.h"
 
-1384206668 /home/pacomendez/compiladores/ve/lexico.h
+1386691765 /home/pacomendez/compiladores/ve/lexico.h
 	<string>
 	<cstdio>
 	<cstdlib>
@@ -16,7 +16,7 @@
 	"parTokenLexema.h"
 	"Errores.h"
 
-1384211770 source:/home/pacomendez/compiladores/ve/lexico.cpp
+1386691777 source:/home/pacomendez/compiladores/ve/lexico.cpp
 	<sstream>
 	<cstdio>
 	"lexico.h"
@@ -45,16 +45,17 @@
 	<string>
 	"definiciones.h"
 
-1385731925 source:/home/pacomendez/compiladores/ve/pharser.cpp
+1388797733 source:/home/pacomendez/compiladores/ve/pharser.cpp
 	"pharser.h"
 
-1385430595 /home/pacomendez/compiladores/ve/pharser.h
+1386694837 /home/pacomendez/compiladores/ve/pharser.h
 	<unordered_map>
 	<string>
 	<csignal>
 	<cstdlib>
 	<cstdio>
 	<list>
+	<stdio.h>
 	"lexico.h"
 	"parTokenLexema.h"
 	"TablaDeSimbolos.h"
@@ -64,10 +65,10 @@
 
 1385405641 /home/pacomendez/compiladores/ve/definiciones.h
 
-1385406103 /home/pacomendez/compiladores/ve/TablaDeSimbolos.h
+1388116922 /home/pacomendez/compiladores/ve/TablaDeSimbolos.h
 	<list>
 	<string>
 
-1385427313 source:/home/pacomendez/compiladores/ve/TablaDeSimbolos.cpp
+1388116903 source:/home/pacomendez/compiladores/ve/TablaDeSimbolos.cpp
 	"TablaDeSimbolos.h"
 

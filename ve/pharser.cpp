@@ -124,15 +124,16 @@ pharser::vars()
 
     bool simboloGlobal = true;
     string s;
-
-
+    /*Lista todas la variables declaradas en una declaración multiple*/
     list<Simbolo> variables;
+    list<string> nombresSimbolos;
+    list<Locales *> locales;
     while(ptl->getLexema() == "var")
     {
         ptl=lex->siguienteToken();
         if(ptl->getLexema() == "(")
-        {
-            //multiples declaraciones de tipo
+        {//multiples declaraciones de tipo
+
             ptl=lex->siguienteToken();
             while((ptl->getLexema() != ")" && ptl->getToken() != "del" &&
                     ptl->getToken() != "plr") || ptl->getToken() =="ide")
@@ -148,7 +149,7 @@ pharser::vars()
                     nuevoSimbolo = true;
                     simboloGlobal = true;
                     g_simboloActual = &sim;
-                    g_localActual = & loc;
+                    g_localActual = &loc;
                     g_cantDimensiones = 0;
 
                     //aqui se agregan a la tabla de simbolos
@@ -220,7 +221,7 @@ pharser::vars()
                     else
                     {
                         //variable sin dimensiones
-                        if(simboloGlobal || nuevoSimbolo)
+                        if(simboloGlobal && nuevoSimbolo)
                         {
                             g_simboloActual->dimen1 = "0";
                             g_simboloActual->dimen2 = "0";
@@ -230,6 +231,7 @@ pharser::vars()
                         {
                             g_localActual->dimen1 = "0";
                             g_localActual->dimen2 = "0";
+                            g_localActual->clase = "L";
                         }
                     }
 
@@ -267,7 +269,7 @@ pharser::vars()
                     lex->nuevoError("Se esperaba un tipo de dato");
                 else
                 {
-                    //cambiamos el valor del tipo
+                    //cambiamos el valor de
                     list<Simbolo>::iterator it = variables.begin();
                     for(; it!=variables.end(); it++)
                     {
@@ -298,15 +300,206 @@ pharser::vars()
 
         }
         else
-        {
-            //declaraciones de un sólo tipo
+/******/{
+        //************************************************************************************************************
+        //************************************************************************************************************
+        //************************************************************************************************************
+        //************************************************************************************************************
+        //************************************************************************************************************
+        //************************************************************************************************************
+        //************************************************************************************************************
+        //************************************************************************************************************
+        //************************************************************************************************************
+        //declaraciones de un sólo tipo******************************************************************************
+        //************************************************************************************************************
+        //************************************************************************************************************
+        //************************************************************************************************************
+        //************************************************************************************************************
+        //************************************************************************************************************
+        //************************************************************************************************************
+        //************************************************************************************************************
+        //************************************************************************************************************
+        //************************************************************************************************************
+            //limpiamos la lista
+            variables.clear();
+            nombresSimbolos.clear();
+            locales.clear();
             while(ptl->getToken() == "ide" && !esTipoDeDato(ptl->getLexema()))
             {
                 //aqui se agregan a la tabla de simbolos
+                //reiniciamos la lista de variables
+                g_localActual = NULL;
+                g_simboloActual = NULL;
+                Simbolo sim;
+                Locales loc;
+                unordered_map<string,Simbolo>::iterator it;
+                nuevoSimbolo = true;
+                simboloGlobal = true;
+                g_simboloActual = &sim;
+                g_localActual = &loc;
+                g_cantDimensiones = 0;
+
+                if(g_procedimiento == GLOBAL)
+                {
+                    //contexto global
+                    //buscamos en la definicion actual que no esté repetida
+                    bool f = true;
+                    list<Simbolo>::iterator i = variables.begin();
+                    for(; i!=variables.end(); i++){
+                        if(i->nombre == ptl->getLexema())
+                            f = false;
+                    }
+
+
+                    if(f==true && (it=TablaSimbolos.find(ptl->getLexema())) == TablaSimbolos.end())
+                    {
+                        //cuando la variable no existe en ningun contexto
+                        sim.nombre = ptl->getLexema();
+                        sim.clase = "V";
+
+                        //variables.push_back(sim);
+                    }
+                    else if(f == true)
+                    {
+                        //cuando la variable ya existe en otro contexto
+
+                        if((it->second).clase=="I" && (it->second).tipo=="I")
+                        {
+                            it->second.clase = "V";
+                            //cambiamos el apuntado de g_simboloActual al elemento
+                            //del iterador, el cual sólo se debe modificar
+                            g_simboloActual = &(it->second);
+                            //para indicar que sólo se modificará un símbolo existente
+                            nuevoSimbolo = false;
+                        }
+                        else
+                        {
+                            //ERROR:redefiniendo variable
+                            lex->nuevoError("Intento de redefinicion de variable global");
+                            finalizar();
+                        }
+                    }else{
+                        lex->nuevoError("Intento de redefinicion de variable global");
+                            finalizar();
+                    }
+                } //fin del contexto global
+                else
+                {//cuando el contexto es una funcion*******************************************
+                    simboloGlobal = false;
+                    sim.nombre = ptl->getLexema();
+                    loc.procp = g_procedimiento;
+                    //loc.nom = ptl->getLexema();
+
+                    //buscamos en la definicion actual que no esté repetida
+                    bool f = true;
+                    list<Simbolo>::iterator i = variables.begin();
+                    for(; i!=variables.end(); i++){
+                        if(i->nombre == ptl->getLexema())
+                            f = false;
+                    }
+
+
+                    if(f==true && (it=TablaSimbolos.find(ptl->getLexema())) == TablaSimbolos.end())
+                    {
+                        //cuando la variable no existe en ningun contexto
+                        sim.clase = "I";
+                    }
+                    else if(f == true)
+                    {
+                        //cuando la variable ya existe en otro contexto
+                        /**la clase del elemento debe ser 'v' que quiere decir que
+                        éxclusivamente la variable existe en un contexto global*/
+                        bool banderaVariableLocal = true;
+                        list<Locales>::iterator i = (it->second).aLocales.begin();
+                        for(;i!=(it->second).aLocales.end();i++){
+                            if(i->procp==g_procedimiento)
+                                banderaVariableLocal = false;
+                        }
+
+                        //if((it->second).clase=="V" && (it->second).tipo!="I")
+                        if(banderaVariableLocal && (it->second).clase=="V")
+                        {
+                            it->second.clase = "V";
+                            //cambiamos el apuntado de g_simboloActual al elemento
+                            //del iterador, el cual sólo se debe modificar
+                            g_simboloActual = &(it->second);
+                            //para indicar que sólo se modificará un símbolo existente
+                            nuevoSimbolo = false;
+                        }
+                        else if(banderaVariableLocal){
+                            it->second.clase = "I";
+                            g_simboloActual = &(it->second);
+                            nuevoSimbolo = false;
+                        }else
+                        {
+                            //ERROR:redefiniendo variable
+                            lex->nuevoError("Intento de redefinicion de variable local");
+                            finalizar();
+                        }
+
+                    }
+                }//fin del contexto de función
+                /*------------------------------------------------*/
+                /*hasta aquí ya se guardó el nombre, tipo, clase,procedimiento*/
+
+
                 ptl=lex->siguienteToken();
                 s = ptl->getLexema();
-                if(ptl->getLexema() == "[")
-                    dimen();
+
+                //variable sin dimensiones
+                if(simboloGlobal && nuevoSimbolo)
+                {
+                    g_simboloActual->dimen1 = "0";
+                    g_simboloActual->dimen2 = "0";
+                }else if(nuevoSimbolo){
+                    sim.dimen1 = "0";
+                    sim.dimen2 = "0";
+                }
+                if(!simboloGlobal)
+                {
+                    g_localActual->dimen1 = "0";
+                    g_localActual->dimen2 = "0";
+                    g_localActual->clase = "L";
+                }
+
+
+
+                //nos servira de refencia para saber si se está llenando
+                //una variable global o local
+                if(simboloGlobal)//si no es una función, el local se setea a null
+                    g_localActual = NULL;
+                else
+                    g_simboloActual = NULL;
+                if(ptl->getLexema() == "["){
+                    //cuando la variable si está dimensionada
+                    g_cantDimensiones = 0;
+                    dimenDef();
+                }
+
+                if(nuevoSimbolo && simboloGlobal){
+                    //variables.push_back(sim);
+                    TablaSimbolos.insert(std::pair<string,Simbolo>(sim.nombre,sim));
+                    nombresSimbolos.push_back(sim.nombre);
+                }
+                else if(nuevoSimbolo && !simboloGlobal)
+                {
+                    Locales * aploc;
+                    loc.tipo="";
+                    sim.aLocales.push_back(loc);
+                    string nom = sim.nombre;
+                    nombresSimbolos.push_back(nom);
+                    TablaSimbolos.insert(std::pair<string,Simbolo>(nom,sim));
+                    Simbolo * simb = &(TablaSimbolos.find(sim.nombre)->second);
+                    aploc = &(simb->aLocales.back());
+                    locales.push_back(aploc);
+                }
+                else if(!nuevoSimbolo && !simboloGlobal)
+                {
+                    it->second.aLocales.push_back(loc);
+                    g_localActual = &(it->second.aLocales.back());
+                    locales.push_back(g_localActual);
+                }
+
                 if(ptl->getLexema() != "," && !esTipoDeDato(ptl->getLexema()))
                     lex->nuevoError("Esperaba una \",\" o tipo de dato");
                 else
@@ -321,10 +514,36 @@ pharser::vars()
                         }
                     }
                 }
-            }
+            }//fin del while que almacena las variables
+
             if(!esTipoDeDato(ptl->getLexema()))
                 lex->nuevoError("Se esperaba un tipo de dato");
 
+            string tipoDeDato = ptl->getLexema();
+            //cambiamos el valor del tipo
+            if(simboloGlobal){
+                //list<Simbolo>::iterator i = variables.begin();
+                list<string>::iterator i = nombresSimbolos.begin();
+                for(; i!=nombresSimbolos.end(); i++)
+                {
+                    TablaSimbolos.find(*i)->second.tipo = representaTipoDato(tipoDeDato);
+                    //i->tipo = representaTipoDato(tipoDeDato);
+                    //TablaSimbolos.insert(std::pair<string,Simbolo>(i->nombre,*i));
+                }
+            }else{
+                //list<Simbolo>::iterator i = variables.begin();
+                list<string>::iterator i = nombresSimbolos.begin();
+                for(; i!=nombresSimbolos.end(); i++)
+                {
+                    TablaSimbolos.find(*i)->second.tipo = "I";
+                }
+
+                list<Locales *>::iterator ii = locales.begin();
+
+                for(; ii!=locales.end(); ii++){
+                    (*ii)->tipo = representaTipoDato(tipoDeDato);
+                }
+            }
             ptl = lex->siguienteToken();
         }//fin del else principal
     }//fin del while principal
@@ -341,7 +560,7 @@ pharser::cons()
         ptl=lex->siguienteToken();
         if(ptl->getLexema() == "(")
         {
-            //multiples declaraciones de tipo
+            /**multiples declaraciones de tipo*/
             ptl = lex->siguienteToken();
             while(ptl->getToken() == "ide")
             {
@@ -443,17 +662,28 @@ pharser::funcs()
             {
                 sim.tipo = representaTipoDato(ptl->getLexema());
                 ptl = lex->siguienteToken();
+                /*Insertamos el elemento a la tabla*/
+                if((TablaSimbolos.find(ptl->getLexema())) == TablaSimbolos.end()){
+                    TablaSimbolos.insert(std::pair<string,Simbolo>(sim.nombre,sim));
+                }
+                else{
+                    lex->nuevoError("No se puede redefinir la función");
+                    finalizar();
+                }
                 block();
             }
             else
             {
                 sim.tipo = "I";
+                /*Insertamos el elemento a la tabla*/
+                if((TablaSimbolos.find(ptl->getLexema())) == TablaSimbolos.end()){
+                    TablaSimbolos.insert(std::pair<string,Simbolo>(sim.nombre,sim));
+                }else{
+                    lex->nuevoError("No se puede redefinir la función");
+                    finalizar();
+                }
                 block();
             }
-
-            /*Insertamos el elemento a la tabla*/
-            TablaSimbolos.insert(std::pair<string,Simbolo>(sim.nombre,sim));
-
 
         }
     }
@@ -816,22 +1046,71 @@ pharser::lee()
 void
 pharser::dimen()
 {
-    if(ptl->getLexema() == "[")
-    {
-        ptl = lex->siguienteToken();
-        expr();
-        if(ptl->getLexema() == "]")
+    if(g_cantDimensiones < 2){
+        if(ptl->getLexema() == "[")
         {
             ptl = lex->siguienteToken();
-            if(ptl->getLexema() == "[")
-                dimen();
+            expr();
+            if(ptl->getLexema() == "]")
+            {
+                ptl = lex->siguienteToken();
+                if(ptl->getLexema() == "[")
+                    dimen();
+            }
+            else
+                lex->nuevoError("Esperaba \"]\" para cerrar dimension");
         }
         else
-            lex->nuevoError("Esperaba \"]\" para cerrar dimension");
+            lex->nuevoError("Esperaba \"[\" para indicar dimensiones");
+    }else{
+        lex->nuevoError("El máximo de dimensiones a indicar es \"2\"");
     }
-    else
-        lex->nuevoError("Esperaba \"[\" para indicar dimensiones");
 }//fin de dimen
+
+void
+pharser::dimenDef()
+{
+    if(g_cantDimensiones < 2){
+        if(ptl->getLexema() == "[")
+        {
+            ptl = lex->siguienteToken();
+            //expr();
+            //aquí solo se aceptan enteros
+            if(ptl->getToken() == "dec"){
+                if(g_cantDimensiones == 0){
+                    if(g_simboloActual!=NULL){
+                        g_simboloActual->dimen1 = ptl->getLexema();
+                    }else{
+                        g_localActual->dimen1 = ptl->getLexema();
+                    }
+                }else if(g_cantDimensiones == 1){
+                    if(g_simboloActual!=NULL){
+                        g_simboloActual->dimen2 = ptl->getLexema();
+                    }else{
+                        g_localActual->dimen2 = ptl->getLexema();
+                    }
+                }
+                ptl = lex->siguienteToken();
+            }else{
+                lex->nuevoError("El tamaño de las dimensiones debe ser indicado como un valor entero");
+            }
+
+            if(ptl->getLexema() == "]")
+            {
+                ptl = lex->siguienteToken();
+                g_cantDimensiones++;
+                if(ptl->getLexema() == "[")
+                    dimenDef();
+            }
+            else
+                lex->nuevoError("Esperaba \"]\" para cerrar dimension");
+        }
+        else
+            lex->nuevoError("Esperaba \"[\" para indicar dimensiones");
+    }else{
+        lex->nuevoError("El máximo de dimensiones a indicar es \"2\"");
+    }
+}//fin de dimenDef
 
 void
 pharser::regresa()
@@ -1013,7 +1292,8 @@ pharser::caso()
             }
             else
             {
-                lex->nuevoError("Esperaba \"{\" para bloque");
+                lex->nuevoError("Esperaba \"{\" para bloque, no debe llegar una expresión como valor del \"caso\"");
+                finalizar();
             }
         }
         else

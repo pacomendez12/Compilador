@@ -1,0 +1,40 @@
+/*ñ&%$#dssdflkjdf		|@|¬·@·~@~¬[{þø→↓←ŧ¶đŋŋđð»]*/
+paquete principal
+
+importar "fmt"
+importar "math"
+importar "math"
+importar "math"
+
+
+var ( i, j, k, n, vector entero
+      r, s, t real
+      alfa, beta alfabetico
+      log1, l entero) 
+      
+var a,b,c entero
+
+
+funcion pato(a,b,c,d entero, j,k,l,m real){
+	continua;
+	continua;
+	continua;
+	continua;
+	continua;
+	continua;
+	continua;
+	continua;
+	continua;
+	continua;
+}
+
+funcion holaMundo(){
+	entero a:=5
+	real b:=5.24
+	%
+	#
+	"
+	"
+	2.
+	"dafdasfadsfadsfdsf
+}

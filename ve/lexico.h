@@ -91,6 +91,8 @@ public:
 
     bool HuboSaltoDeLinea();
 
+    void avanzarHasta(string);
+
     string trim(string);
 
     /**

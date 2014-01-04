@@ -11,24 +11,41 @@ GENERACIÓN DE CÓDIGO
 	
 	PL/0 (Máquina de pila)
 	------------------------------------------------
-	
 	| MNEMONICO	| dir |	dir2 |
 	
-	LOD Carga en pila cte o var
-	STO	Almacena en var sacando pila
-	JMP Salto incondicional (directo o indirecto)
-	JMC Salto condicional (directo o indirecto)
-	CAL	Lamada a una subrutina
+	LOD ide,0  Carga en pila var
+	LIT cte,0  carga en la pila una constante
+	//STO	Almacena en var sacando pila
+	STO 0,ide  (Almacena en tabsim el valor de Ide (saca el valor de pila))
+	JMP 0,_Ex  Salto incondicional (indirecto)
+	JMP 0,_dir  Salto incondicional (directo)
+	JMC cond,_Ex  Salto condicional (indirecto)
+	JMC cond,dir  Salto condicional (directo)
+	CAL nomf,0 	Lamada a una subrutina
+	
 	OPR	0,0 fin(stop run o halt)
 	OPR 0,1 regresa según valor sobre pila
 	OPR 0,2 suma
 	OPR 0,3 resta
-	.
-	.
-	.
-	OPR 0,19 Lee
+	OPR 0,4 multiplicación
+	OPR 0,5 división
+	OPR 0,6 módulo
+	OPR 0,7 exponente
+	OPR 0,8 menos unitario (de signo)
+	OPR 0,9 menor que (<)
+	OPR 0,10 mayor que (>)
+	OPR 0,11 menor o igual (<=)
+	OPR 0,12 mayor o igual (>=)
+	OPR 0,13 diferente (!=)
+	OPR 0,14 igual (==)
+	OPR 0,15 and (&&)
+	OPR 0,16 or (||)
+	OPR 0,17 not (!)
+	OPR 0,18 cls (Limpiar pantalla)
+	OPR iden,19 Lee
 	OPR 0,20 Escribe
-	OPR 0,22 Escribo con salto de linea
+	OPR 0,21 Escribo con salto de linea
+	
 	
 	
 	GENERACIÓN DE CÓDIGO

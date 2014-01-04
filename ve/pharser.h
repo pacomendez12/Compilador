@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <list>
+#include <stdio.h>
 #include "lexico.h"
 #include "parTokenLexema.h"
 #include "TablaDeSimbolos.h"
@@ -28,6 +29,7 @@ private:
     Simbolo * g_simboloActual;
     Locales * g_localActual;
     int g_cantDimensiones;
+    int g_indiceDimensionActual;
 
 
     /*metodos*/
@@ -47,6 +49,7 @@ private:
     void lee();
     void expr();
     void dimen();
+    void dimenDef();
     void regresa();
     void si();
     void desde();
