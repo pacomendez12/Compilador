@@ -463,9 +463,15 @@ int lexico::colCar(char x, int estado)
 }
 
 void
-lexico::nuevoError(string descripcion)
+lexico::nuevoError(string descripcion,int linea)
 {
-    e.nuevoError(nLinea_ - 1, nColumna_, sLexema_,descripcion,sLineaLeida_);
+    parTokenLexema * p = tokenAnterior();
+    string s;
+    if(p!=NULL)
+        s = p->getLexema();
+    else
+        s = sLexema_;
+    e.nuevoError(nLinea_ - 1, nColumna_, s,descripcion,sLineaLeida_);
 }
 
 void

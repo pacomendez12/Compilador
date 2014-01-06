@@ -74,7 +74,7 @@ public:
      *
      * Crea un nuevo error para el gestor de errores del analizador léxico
      */
-    void nuevoError(string descripcion);
+    void nuevoError(string descripcion,int linea=0);
 
     /** \brief Imprimir errores
      *

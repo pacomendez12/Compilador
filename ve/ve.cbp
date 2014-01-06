@@ -44,6 +44,10 @@
 		<Unit filename="parTokenLexema.h" />
 		<Unit filename="pharser.cpp" />
 		<Unit filename="pharser.h" />
+		<Unit filename="pharser_expr.cpp" />
+		<Unit filename="pharser_util.cpp" />
+		<Unit filename="tipos.cpp" />
+		<Unit filename="tipos.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

@@ -39,6 +39,9 @@ pharser::run()
 
 void pharser::prog()
 {
+    g_dondeEstoy = GLOB;
+    g_interrumpe_flag = false;
+    g_continua_flag = false;
     ptl = lex->siguienteToken();
     if(!(ptl->getLexema()=="paquete"))
     {
@@ -93,8 +96,12 @@ void pharser::prog()
                 {
                     if(ptl->getLexema() == "var")
                         vars();
-                    else if(ptl->getLexema() == "funcion")
+                    else if(ptl->getLexema() == "funcion"){
+                        int tmp = g_dondeEstoy;
+                        g_dondeEstoy = FUNCION;
                         funcs();
+                        g_dondeEstoy = tmp;
+                    }
                     else if(ptl->getLexema() == "const")
                         cons();
                     else if(ptl->getLexema() == ";")
@@ -112,11 +119,14 @@ void pharser::prog()
 
 }
 
+/**
+* Se encarga de realizar todo el análisis (de forma general)
+* de las definiciones de variables, además de agregarlas
+* a la tabla de símbolos
+*/
 void
-pharser::vars()
+pharser::varsAux()
 {
-    //ptl=lex->siguienteToken();
-
     /**bandera que indica si el simbolo encontrado
     es nuevo y por lo tanto no hay ninguna existencia
     de el en la tabla de simbolos.*/
@@ -128,158 +138,265 @@ pharser::vars()
     list<Simbolo> variables;
     list<string> nombresSimbolos;
     list<Locales *> locales;
+    //limpiamos la lista
+    variables.clear();
+    nombresSimbolos.clear();
+    locales.clear();
+    nombresSimbolos.clear();
+    while(ptl->getToken() == "ide" && !esTipoDeDato(ptl->getLexema()))
+    {
+        //aqui se agregan a la tabla de simbolos
+        //reiniciamos la lista de variables
+        g_localActual = NULL;
+        g_simboloActual = NULL;
+        Simbolo sim;
+        Locales loc;
+        unordered_map<string,Simbolo>::iterator it;
+        nuevoSimbolo = true;
+        simboloGlobal = true;
+        g_simboloActual = &sim;
+        g_localActual = &loc;
+        g_cantDimensiones = 0;
+
+        //aqui se agregan a la tabla de simbolos
+        /*------------------------------------------------*/
+        if(g_procedimiento == GLOBAL)
+        {
+            //contexto global
+            //buscamos en la definicion actual que no esté repetida
+            bool f = true;
+            list<Simbolo>::iterator i = variables.begin();
+            for(; i!=variables.end(); i++)
+            {
+                if(i->nombre == ptl->getLexema())
+                    f = false;
+            }
+
+
+            if(f==true && (it=TablaSimbolos.find(ptl->getLexema())) == TablaSimbolos.end())
+            {
+                //cuando la variable no existe en ningun contexto
+                sim.nombre = ptl->getLexema();
+                sim.clase = "V";
+
+                //variables.push_back(sim);
+            }
+            else if(f == true)
+            {
+                //cuando la variable ya existe en otro contexto
+                if((it->second).clase=="I" && (it->second).tipo=="I")
+                {
+                    it->second.clase = "V";
+                    //cambiamos el apuntado de g_simboloActual al elemento
+                    //del iterador, el cual sólo se debe modificar
+                    g_simboloActual = &(it->second);
+                    //para indicar que sólo se modificará un símbolo existente
+                    nuevoSimbolo = false;
+                }
+                else
+                {
+                    //ERROR:redefiniendo variable
+                    lex->nuevoError("Intento de redefinicion de variable global");
+                    finalizar();
+                }
+            }
+            else
+            {
+                lex->nuevoError("Intento de redefinicion de variable");
+                finalizar();
+            }
+        } //fin del contexto global
+        else
+        {
+            //cuando el contexto es una funcion
+            simboloGlobal = false;
+            sim.nombre = ptl->getLexema();
+            loc.procp = g_procedimiento;
+
+            //buscamos en la definicion actual que no esté repetida
+            bool f = true;
+            list<Simbolo>::iterator i = variables.begin();
+            for(; i!=variables.end(); i++)
+            {
+                if(i->nombre == ptl->getLexema())
+                    f = false;
+            }
+
+
+            if(f==true && (it=TablaSimbolos.find(ptl->getLexema())) == TablaSimbolos.end())
+            {
+                //cuando la variable no existe en ningun contexto
+                sim.clase = "I";
+            }
+            else if(f == true)
+            {
+                //cuando la variable ya existe en otro contexto
+                /**la clase del elemento debe ser 'v' que quiere decir que
+                éxclusivamente la variable existe en un contexto global*/
+                bool banderaVariableLocal = true;
+                list<Locales>::iterator i = (it->second).aLocales.begin();
+                for(; i!=(it->second).aLocales.end(); i++)
+                {
+                    if(i->procp==g_procedimiento)
+                        banderaVariableLocal = false;
+                }
+
+                //if((it->second).clase=="V" && (it->second).tipo!="I")
+                if(banderaVariableLocal && (it->second).clase=="V")
+                {
+                    it->second.clase = "V";
+                    //cambiamos el apuntado de g_simboloActual al elemento
+                    //del iterador, el cual sólo se debe modificar
+                    g_simboloActual = &(it->second);
+                    //para indicar que sólo se modificará un símbolo existente
+                    nuevoSimbolo = false;
+                }
+                else if(banderaVariableLocal)
+                {
+                    it->second.clase = "I";
+                    g_simboloActual = &(it->second);
+                    nuevoSimbolo = false;
+                }
+                else
+                {
+                    //ERROR:redefiniendo variable
+                    lex->nuevoError("Intento de redefinicion de variable local");
+                    finalizar();
+                }
+
+            }
+        }//fin del contexto de función
+        /*------------------------------------------------*/
+
+        ptl=lex->siguienteToken();
+        s = ptl->getLexema();
+
+        //variable sin dimensiones
+        if(simboloGlobal && nuevoSimbolo)
+        {
+            g_simboloActual->dimen1 = "0";
+            g_simboloActual->dimen2 = "0";
+        }
+        else if(nuevoSimbolo)
+        {
+            sim.dimen1 = "0";
+            sim.dimen2 = "0";
+        }
+        if(!simboloGlobal)
+        {
+            g_localActual->dimen1 = "0";
+            g_localActual->dimen2 = "0";
+            g_localActual->clase = "L";
+        }
+
+        //nos servira de refencia para saber si se está llenando
+        //una variable global o local
+        if(simboloGlobal)//si no es una función, el local se setea a null
+            g_localActual = NULL;
+        else
+            g_simboloActual = NULL;
+        if(ptl->getLexema() == "[")
+        {
+            //cuando la variable si está dimensionada
+            g_cantDimensiones = 0;
+            dimenDef();
+        }
+
+        /*agregamos la variable a la lista (solo falta indicar el tipo)*/
+        if(nuevoSimbolo && simboloGlobal)
+        {
+            TablaSimbolos.insert(std::pair<string,Simbolo>(sim.nombre,sim));
+            nombresSimbolos.push_back(sim.nombre);
+        }
+        else if(nuevoSimbolo && !simboloGlobal)
+        {
+            Locales * aploc;
+            loc.tipo="";
+            sim.aLocales.push_back(loc);
+            string nom = sim.nombre;
+            nombresSimbolos.push_back(nom);
+            TablaSimbolos.insert(std::pair<string,Simbolo>(nom,sim));
+            Simbolo * simb = &(TablaSimbolos.find(sim.nombre)->second);
+            aploc = &(simb->aLocales.back());
+            locales.push_back(aploc);
+        }
+        else if(!nuevoSimbolo && !simboloGlobal)
+        {
+            it->second.aLocales.push_back(loc);
+            g_localActual = &(it->second.aLocales.back());
+            locales.push_back(g_localActual);
+        }
+
+
+        s = ptl->getLexema();
+        if(ptl->getLexema() != "," && !esTipoDeDato(ptl->getLexema()))
+            lex->nuevoError("Esperaba una \",\" o tipo de dato");
+        else
+        {
+            if(!esTipoDeDato(ptl->getLexema()))
+            {
+                ptl=lex->siguienteToken();
+                s = ptl->getLexema();
+                if(esTipoDeDato(ptl->getLexema()))
+                {
+                    lex->nuevoError("Se esperaba identificador");
+                }
+            }
+        }
+    }//fin del while que agrega variables del mismo tipo
+
+    if(!esTipoDeDato(ptl->getLexema()))
+        lex->nuevoError("Se esperaba un tipo de dato");
+    string tipoDeDato = ptl->getLexema();
+    //cambiamos el valor del tipo
+    if(simboloGlobal)
+    {
+        //list<Simbolo>::iterator i = variables.begin();
+        list<string>::iterator i = nombresSimbolos.begin();
+        for(; i!=nombresSimbolos.end(); i++)
+        {
+            TablaSimbolos.find(*i)->second.tipo = representaTipoDato(tipoDeDato);
+            //i->tipo = representaTipoDato(tipoDeDato);
+            //TablaSimbolos.insert(std::pair<string,Simbolo>(i->nombre,*i));
+        }
+    }
+    else
+    {
+        //list<Simbolo>::iterator i = variables.begin();
+        list<string>::iterator i = nombresSimbolos.begin();
+        for(; i!=nombresSimbolos.end(); i++)
+        {
+            TablaSimbolos.find(*i)->second.tipo = "I";
+        }
+
+        list<Locales *>::iterator ii = locales.begin();
+
+        for(; ii!=locales.end(); ii++)
+        {
+            (*ii)->tipo = representaTipoDato(tipoDeDato);
+        }
+    }
+
+    //obtenemos nuevo lexema
+    ptl=lex->siguienteToken();
+}
+
+void
+pharser::vars()
+{
     while(ptl->getLexema() == "var")
     {
         ptl=lex->siguienteToken();
         if(ptl->getLexema() == "(")
-        {//multiples declaraciones de tipo
+        {
+            //multiples declaraciones de tipo
 
             ptl=lex->siguienteToken();
             while((ptl->getLexema() != ")" && ptl->getToken() != "del" &&
                     ptl->getToken() != "plr") || ptl->getToken() =="ide")
             {
-                //limpiamos la lista
-                variables.clear();
-                while(ptl->getToken() == "ide" && !esTipoDeDato(ptl->getLexema()))
-                {
-                    //reiniciamos la lista de variables
-                    Simbolo sim;
-                    Locales loc;
-                    unordered_map<string,Simbolo>::iterator it;
-                    nuevoSimbolo = true;
-                    simboloGlobal = true;
-                    g_simboloActual = &sim;
-                    g_localActual = &loc;
-                    g_cantDimensiones = 0;
-
-                    //aqui se agregan a la tabla de simbolos
-                    /*------------------------------------------------*/
-                    if(g_procedimiento == GLOBAL)
-                    {
-                        //contexto global
-                        bool f = true;
-                        list<Simbolo>::iterator i = variables.begin();
-                        for(; i!=variables.end(); i++){
-                            if(i->nombre == ptl->getLexema())
-                                f = false;
-                        }
-
-
-                        if(f==true && (it=TablaSimbolos.find(ptl->getLexema())) == TablaSimbolos.end())
-                        {
-                            //cuando la variable no existe en ningun contexto
-                            sim.nombre = ptl->getLexema();
-                            sim.clase = "V";
-
-                            //variables.push_back(sim);
-                        }
-                        else if(f == true)
-                        {
-                            //cuando la variable ya existe en otro contexto
-
-                            if((it->second).clase=="I" && (it->second).tipo=="I")
-                            {
-                                it->second.clase = "V";
-                                //cambiamos el apuntado de g_simboloActual al elemento
-                                //del iterador, el cual sólo se debe modificar
-                                g_simboloActual = &(it->second);
-                                //para indicar que sólo se modificará un símbolo existente
-                                nuevoSimbolo = false;
-                            }
-                            else
-                            {
-                                //ERROR:redefiniendo variable
-                                lex->nuevoError("Intento de redefinicion de variable global");
-                                finalizar();
-                            }
-                        }else{
-                            lex->nuevoError("Intento de redefinicion de variable global");
-                                finalizar();
-                        }
-                    } //fin del contexto global
-                    else
-                    {
-                        //cuando el contexto es una funcion
-
-                        simboloGlobal = false;
-                        sim.nombre = ptl->getLexema();
-                        sim.clase = "L";
-                    }//fin del contexto de función
-                    /*------------------------------------------------*/
-
-                    //nos servira de refencia para saber si se está llenando
-                    //una variable global o local
-                    if(simboloGlobal)
-                        g_localActual = NULL;
-                    else
-                        g_simboloActual = NULL;
-
-                    ptl=lex->siguienteToken();
-                    s = ptl->getLexema();
-                    if(ptl->getLexema() == "[")
-                        dimen();
-                    else
-                    {
-                        //variable sin dimensiones
-                        if(simboloGlobal && nuevoSimbolo)
-                        {
-                            g_simboloActual->dimen1 = "0";
-                            g_simboloActual->dimen2 = "0";
-                        }
-
-                        if(!simboloGlobal)
-                        {
-                            g_localActual->dimen1 = "0";
-                            g_localActual->dimen2 = "0";
-                            g_localActual->clase = "L";
-                        }
-                    }
-
-                    /*agregamos la variable a la lista (solo falta indicar el tipo)*/
-                    if(nuevoSimbolo && simboloGlobal)
-                        variables.push_back(sim);
-                    else if(nuevoSimbolo && !simboloGlobal)
-                    {
-                        sim.aLocales.push_back(loc);
-                        variables.push_back(sim);
-                    }
-                    else if(!nuevoSimbolo && !simboloGlobal)
-                    {
-                        it->second.aLocales.push_back(loc);
-                    }
-
-                    s = ptl->getLexema();
-                    if(ptl->getLexema() != "," && !esTipoDeDato(ptl->getLexema()))
-                        lex->nuevoError("Esperaba una \",\" o tipo de dato");
-                    else
-                    {
-                        if(!esTipoDeDato(ptl->getLexema()))
-                        {
-                            ptl=lex->siguienteToken();
-                            s = ptl->getLexema();
-                            if(esTipoDeDato(ptl->getLexema()))
-                            {
-                                lex->nuevoError("Se esperaba identificador");
-                            }
-                        }
-                    }
-                }//fin del while que agrega variables del mismo tipo
-
-                if(!esTipoDeDato(ptl->getLexema()))
-                    lex->nuevoError("Se esperaba un tipo de dato");
-                else
-                {
-                    //cambiamos el valor de
-                    list<Simbolo>::iterator it = variables.begin();
-                    for(; it!=variables.end(); it++)
-                    {
-                        it->tipo = representaTipoDato(ptl->getLexema());
-                        TablaSimbolos.insert(std::pair<string,Simbolo>(it->nombre,*it));
-                    }
-                }
-
-                //obtenemos nuevo lexema
-                ptl=lex->siguienteToken();
+                /*IMPORTANTE LLAMADA*/
+                varsAux();
 #ifdef DEBUG
                 string s = ptl->getLexema();
                 bool a = lex->HuboSaltoDeLinea();
@@ -300,256 +417,51 @@ pharser::vars()
 
         }
         else
-/******/{
-        //************************************************************************************************************
-        //************************************************************************************************************
-        //************************************************************************************************************
-        //************************************************************************************************************
-        //************************************************************************************************************
-        //************************************************************************************************************
-        //************************************************************************************************************
-        //************************************************************************************************************
-        //************************************************************************************************************
-        //declaraciones de un sólo tipo******************************************************************************
-        //************************************************************************************************************
-        //************************************************************************************************************
-        //************************************************************************************************************
-        //************************************************************************************************************
-        //************************************************************************************************************
-        //************************************************************************************************************
-        //************************************************************************************************************
-        //************************************************************************************************************
-        //************************************************************************************************************
-            //limpiamos la lista
-            variables.clear();
-            nombresSimbolos.clear();
-            locales.clear();
-            while(ptl->getToken() == "ide" && !esTipoDeDato(ptl->getLexema()))
-            {
-                //aqui se agregan a la tabla de simbolos
-                //reiniciamos la lista de variables
-                g_localActual = NULL;
-                g_simboloActual = NULL;
-                Simbolo sim;
-                Locales loc;
-                unordered_map<string,Simbolo>::iterator it;
-                nuevoSimbolo = true;
-                simboloGlobal = true;
-                g_simboloActual = &sim;
-                g_localActual = &loc;
-                g_cantDimensiones = 0;
-
-                if(g_procedimiento == GLOBAL)
-                {
-                    //contexto global
-                    //buscamos en la definicion actual que no esté repetida
-                    bool f = true;
-                    list<Simbolo>::iterator i = variables.begin();
-                    for(; i!=variables.end(); i++){
-                        if(i->nombre == ptl->getLexema())
-                            f = false;
-                    }
-
-
-                    if(f==true && (it=TablaSimbolos.find(ptl->getLexema())) == TablaSimbolos.end())
-                    {
-                        //cuando la variable no existe en ningun contexto
-                        sim.nombre = ptl->getLexema();
-                        sim.clase = "V";
-
-                        //variables.push_back(sim);
-                    }
-                    else if(f == true)
-                    {
-                        //cuando la variable ya existe en otro contexto
-
-                        if((it->second).clase=="I" && (it->second).tipo=="I")
-                        {
-                            it->second.clase = "V";
-                            //cambiamos el apuntado de g_simboloActual al elemento
-                            //del iterador, el cual sólo se debe modificar
-                            g_simboloActual = &(it->second);
-                            //para indicar que sólo se modificará un símbolo existente
-                            nuevoSimbolo = false;
-                        }
-                        else
-                        {
-                            //ERROR:redefiniendo variable
-                            lex->nuevoError("Intento de redefinicion de variable global");
-                            finalizar();
-                        }
-                    }else{
-                        lex->nuevoError("Intento de redefinicion de variable global");
-                            finalizar();
-                    }
-                } //fin del contexto global
-                else
-                {//cuando el contexto es una funcion*******************************************
-                    simboloGlobal = false;
-                    sim.nombre = ptl->getLexema();
-                    loc.procp = g_procedimiento;
-                    //loc.nom = ptl->getLexema();
-
-                    //buscamos en la definicion actual que no esté repetida
-                    bool f = true;
-                    list<Simbolo>::iterator i = variables.begin();
-                    for(; i!=variables.end(); i++){
-                        if(i->nombre == ptl->getLexema())
-                            f = false;
-                    }
-
-
-                    if(f==true && (it=TablaSimbolos.find(ptl->getLexema())) == TablaSimbolos.end())
-                    {
-                        //cuando la variable no existe en ningun contexto
-                        sim.clase = "I";
-                    }
-                    else if(f == true)
-                    {
-                        //cuando la variable ya existe en otro contexto
-                        /**la clase del elemento debe ser 'v' que quiere decir que
-                        éxclusivamente la variable existe en un contexto global*/
-                        bool banderaVariableLocal = true;
-                        list<Locales>::iterator i = (it->second).aLocales.begin();
-                        for(;i!=(it->second).aLocales.end();i++){
-                            if(i->procp==g_procedimiento)
-                                banderaVariableLocal = false;
-                        }
-
-                        //if((it->second).clase=="V" && (it->second).tipo!="I")
-                        if(banderaVariableLocal && (it->second).clase=="V")
-                        {
-                            it->second.clase = "V";
-                            //cambiamos el apuntado de g_simboloActual al elemento
-                            //del iterador, el cual sólo se debe modificar
-                            g_simboloActual = &(it->second);
-                            //para indicar que sólo se modificará un símbolo existente
-                            nuevoSimbolo = false;
-                        }
-                        else if(banderaVariableLocal){
-                            it->second.clase = "I";
-                            g_simboloActual = &(it->second);
-                            nuevoSimbolo = false;
-                        }else
-                        {
-                            //ERROR:redefiniendo variable
-                            lex->nuevoError("Intento de redefinicion de variable local");
-                            finalizar();
-                        }
-
-                    }
-                }//fin del contexto de función
-                /*------------------------------------------------*/
-                /*hasta aquí ya se guardó el nombre, tipo, clase,procedimiento*/
-
-
-                ptl=lex->siguienteToken();
-                s = ptl->getLexema();
-
-                //variable sin dimensiones
-                if(simboloGlobal && nuevoSimbolo)
-                {
-                    g_simboloActual->dimen1 = "0";
-                    g_simboloActual->dimen2 = "0";
-                }else if(nuevoSimbolo){
-                    sim.dimen1 = "0";
-                    sim.dimen2 = "0";
-                }
-                if(!simboloGlobal)
-                {
-                    g_localActual->dimen1 = "0";
-                    g_localActual->dimen2 = "0";
-                    g_localActual->clase = "L";
-                }
-
-
-
-                //nos servira de refencia para saber si se está llenando
-                //una variable global o local
-                if(simboloGlobal)//si no es una función, el local se setea a null
-                    g_localActual = NULL;
-                else
-                    g_simboloActual = NULL;
-                if(ptl->getLexema() == "["){
-                    //cuando la variable si está dimensionada
-                    g_cantDimensiones = 0;
-                    dimenDef();
-                }
-
-                if(nuevoSimbolo && simboloGlobal){
-                    //variables.push_back(sim);
-                    TablaSimbolos.insert(std::pair<string,Simbolo>(sim.nombre,sim));
-                    nombresSimbolos.push_back(sim.nombre);
-                }
-                else if(nuevoSimbolo && !simboloGlobal)
-                {
-                    Locales * aploc;
-                    loc.tipo="";
-                    sim.aLocales.push_back(loc);
-                    string nom = sim.nombre;
-                    nombresSimbolos.push_back(nom);
-                    TablaSimbolos.insert(std::pair<string,Simbolo>(nom,sim));
-                    Simbolo * simb = &(TablaSimbolos.find(sim.nombre)->second);
-                    aploc = &(simb->aLocales.back());
-                    locales.push_back(aploc);
-                }
-                else if(!nuevoSimbolo && !simboloGlobal)
-                {
-                    it->second.aLocales.push_back(loc);
-                    g_localActual = &(it->second.aLocales.back());
-                    locales.push_back(g_localActual);
-                }
-
-                if(ptl->getLexema() != "," && !esTipoDeDato(ptl->getLexema()))
-                    lex->nuevoError("Esperaba una \",\" o tipo de dato");
-                else
-                {
-                    if(!esTipoDeDato(ptl->getLexema()))
-                    {
-                        ptl=lex->siguienteToken();
-                        s = ptl->getLexema();
-                        if(esTipoDeDato(ptl->getLexema()))
-                        {
-                            lex->nuevoError("Se esperaba identificador");
-                        }
-                    }
-                }
-            }//fin del while que almacena las variables
-
-            if(!esTipoDeDato(ptl->getLexema()))
-                lex->nuevoError("Se esperaba un tipo de dato");
-
-            string tipoDeDato = ptl->getLexema();
-            //cambiamos el valor del tipo
-            if(simboloGlobal){
-                //list<Simbolo>::iterator i = variables.begin();
-                list<string>::iterator i = nombresSimbolos.begin();
-                for(; i!=nombresSimbolos.end(); i++)
-                {
-                    TablaSimbolos.find(*i)->second.tipo = representaTipoDato(tipoDeDato);
-                    //i->tipo = representaTipoDato(tipoDeDato);
-                    //TablaSimbolos.insert(std::pair<string,Simbolo>(i->nombre,*i));
-                }
-            }else{
-                //list<Simbolo>::iterator i = variables.begin();
-                list<string>::iterator i = nombresSimbolos.begin();
-                for(; i!=nombresSimbolos.end(); i++)
-                {
-                    TablaSimbolos.find(*i)->second.tipo = "I";
-                }
-
-                list<Locales *>::iterator ii = locales.begin();
-
-                for(; ii!=locales.end(); ii++){
-                    (*ii)->tipo = representaTipoDato(tipoDeDato);
-                }
-            }
-            ptl = lex->siguienteToken();
+        {
+            //declaraciones de un sólo tipo
+            /*IMPORTANTE LLAMADA*/
+            varsAux();
         }//fin del else principal
     }//fin del while principal
 }//fin del método vars
 
-/*falta corregir*/
+
+/**
+* Auxiliar que realiza el análisis de las constantes
+* y agrega el símbolo a la tabla de símbolos
+*/
+void
+pharser::consAux()
+{
+    Simbolo sim;
+    sim.nombre = ptl->getLexema();
+    sim.clase = "C";
+    sim.dimen1 = "0";
+    sim.dimen2 = "0";
+    ptl = lex->siguienteToken();
+    if(ptl->getLexema() == ":=" || ptl->getLexema() == "=")
+    {
+        ptl=lex->siguienteToken();
+        if(ptl->getToken() == "cal" || ptl->getToken() == "cca" ||
+                ptl->getToken() == "dec" || ptl->getToken() == "hex" ||
+                ptl->getToken() == "oct" || ptl->getToken() == "clg" ||
+                ptl->getToken() == "rea")
+        {
+            sim.tipo = representaTipoDato(ptl->getToken());
+            TablaSimbolos.insert(std::pair<string,Simbolo>(sim.nombre,sim));
+            ptl = lex->siguienteToken();
+        }
+        else
+        {
+            lex->nuevoError("Esperaba valor constante para declaración de constante");
+        }
+    }
+    else
+    {
+        lex->nuevoError("Esperaba \"=\" para inicializar constante");
+    }
+}
+
 void
 pharser::cons()
 {
@@ -565,24 +477,7 @@ pharser::cons()
             while(ptl->getToken() == "ide")
             {
                 //aqui se agregan a la tabla de simbolos
-                ptl=lex->siguienteToken();
-                if(ptl->getLexema() == ":=" || ptl->getLexema() == "=")
-                {
-                    ptl=lex->siguienteToken();
-                    if(ptl->getToken() == "cal" || ptl->getToken() == "cca" ||
-                            ptl->getToken() == "dec" || ptl->getToken() == "hex" ||
-                            ptl->getToken() == "oct" || ptl->getToken() == "clg" ||
-                            ptl->getToken() == "rea")
-                        ptl = lex->siguienteToken();
-                    else
-                    {
-                        lex->nuevoError("Esperaba valor constante para declaración de constante");
-                    }
-                }
-                else
-                {
-                    lex->nuevoError("Esperaba \"=\" para inicializar constante");
-                }
+                consAux();
                 if(ptl->getLexema() == ",")
                     ptl = lex->siguienteToken();
 
@@ -606,24 +501,7 @@ pharser::cons()
             //ptl=lex->siguienteToken();
             if(ptl->getToken() == "ide")
             {
-                ptl = lex->siguienteToken();
-                if(ptl->getLexema() == ":=" || ptl->getLexema() == "=")
-                {
-                    ptl=lex->siguienteToken();
-                    if(ptl->getToken() == "cal" || ptl->getToken() == "cca" ||
-                            ptl->getToken() == "dec" || ptl->getToken() == "hex" ||
-                            ptl->getToken() == "oct" || ptl->getToken() == "clg" ||
-                            ptl->getToken() == "rea")
-                        ptl = lex->siguienteToken();
-                    else
-                    {
-                        lex->nuevoError("Esperaba valor constante para declaración de constante");
-                    }
-                }
-                else
-                {
-                    lex->nuevoError("Esperaba \"=\" para inicializar constante");
-                }
+                consAux();
             }
             else
             {
@@ -639,6 +517,10 @@ void
 pharser::funcs()
 {
     Simbolo sim;
+    string nombrecompleto ="";
+    g_string_global = "";
+    g_cantDimensiones = 0;
+    g_regresa_flag = false;
     if(ptl->getLexema() == "funcion")
     {
         ptl = lex->siguienteToken();
@@ -651,6 +533,7 @@ pharser::funcs()
             /*------------------------------------------------*/
             g_procedimiento = ptl->getLexema();
             sim.nombre = ptl->getLexema();
+            nombrecompleto = ptl->getLexema();
             sim.clase = "F";
             sim.dimen1 = "0";
             sim.dimen2 = "0";
@@ -658,33 +541,34 @@ pharser::funcs()
 
             ptl = lex->siguienteToken();
             params();
+            nombrecompleto+=g_string_global;
+            sim.nombreFuncion = nombrecompleto;
             if(esTipoDeDato(ptl->getLexema()))
             {
                 sim.tipo = representaTipoDato(ptl->getLexema());
                 ptl = lex->siguienteToken();
-                /*Insertamos el elemento a la tabla*/
-                if((TablaSimbolos.find(ptl->getLexema())) == TablaSimbolos.end()){
-                    TablaSimbolos.insert(std::pair<string,Simbolo>(sim.nombre,sim));
-                }
-                else{
-                    lex->nuevoError("No se puede redefinir la función");
-                    finalizar();
-                }
-                block();
             }
             else
             {
                 sim.tipo = "I";
-                /*Insertamos el elemento a la tabla*/
-                if((TablaSimbolos.find(ptl->getLexema())) == TablaSimbolos.end()){
-                    TablaSimbolos.insert(std::pair<string,Simbolo>(sim.nombre,sim));
-                }else{
-                    lex->nuevoError("No se puede redefinir la función");
-                    finalizar();
-                }
-                block();
             }
 
+
+            if((TablaSimbolos.find(sim.nombre)) == TablaSimbolos.end())
+            {
+                TablaSimbolos.insert(std::pair<string,Simbolo>(sim.nombre,sim));
+            }
+            else
+            {
+                lex->nuevoError("No se puede redefinir la función");
+                finalizar();
+            }
+
+            block();
+
+            if(!g_regresa_flag && dameSimboloDeTabla(g_procedimiento)->second.tipo!="I"){
+                lex->nuevoError("Falta indicar \"regresa\" para la funcion "+g_procedimiento);
+            }
         }
     }
     else
@@ -697,6 +581,7 @@ pharser::funcs()
 void
 pharser::params()
 {
+    g_cantDimensiones = 0;
     if(ptl->getLexema() == "(")
     {
         ptl = lex->siguienteToken();
@@ -706,7 +591,65 @@ pharser::params()
         {
             if(ptl->getToken() == "ide")
             {
+                g_variables.clear();
+                g_nombresSimbolos.clear();
+                g_locales.clear();
                 pars();
+                if(esTipoDeDato(ptl->getLexema()))
+                {
+                    string tipoDeDato = ptl->getLexema();
+                    list<string>::iterator i = g_nombresSimbolos.begin();
+                    for(; i!=g_nombresSimbolos.end(); i++)
+                    {
+                        TablaSimbolos.find(*i)->second.tipo = "I";
+                    }
+
+                    list<Locales *>::iterator ii = g_locales.begin();
+
+                    for(; ii!=g_locales.end(); ii++)
+                    {
+                        (*ii)->tipo = representaTipoDato(tipoDeDato);
+                        g_string_global+= "$"+representaTipoDato(tipoDeDato);
+                    }
+                    ptl = lex->siguienteToken();
+                    if(ptl->getLexema() == ",")
+                    {
+                        ptl = lex->siguienteToken();
+                        g_locales.clear();
+                        g_nombresSimbolos.clear();
+                        g_variables.clear();
+                        pars();
+                        if(esTipoDeDato(ptl->getLexema()))
+                            {
+                                string tipoDeDato = ptl->getLexema();
+                                list<string>::iterator i = g_nombresSimbolos.begin();
+                                for(; i!=g_nombresSimbolos.end(); i++)
+                                {
+                                    TablaSimbolos.find(*i)->second.tipo = "I";
+                                }
+
+                                list<Locales *>::iterator ii = g_locales.begin();
+
+                                for(; ii!=g_locales.end(); ii++)
+                                {
+                                    (*ii)->tipo = representaTipoDato(tipoDeDato);
+                                    g_string_global+= "$"+representaTipoDato(tipoDeDato);
+                                }
+                                ptl = lex->siguienteToken();
+                                if(ptl->getLexema() == ",")
+                                {
+                                    g_locales.clear();
+                                    g_nombresSimbolos.clear();
+                                    g_variables.clear();
+                                    pars();
+                                }
+                            }
+                    }
+                }
+                else
+                {
+                    lex->nuevoError("Esperaba un tipo de dato o una \",\"");
+                }
                 if(ptl->getLexema() != ")")
                 {
                     lex->nuevoError("Falta \")\" para los parámetros");
@@ -726,33 +669,107 @@ pharser::params()
     }
 }//fin params
 
+
 void
 pharser::pars()
 {
+    Simbolo sim;
+    Locales loc;
+    g_cantDimensiones = 0;
+    unordered_map<string,Simbolo>::iterator it;
+    bool nuevoSimbolo = true;
     if(ptl->getToken() == "ide")
     {
+        //cuando el contexto es una funcion
+        sim.nombre = ptl->getLexema();
+        sim.clase = "I";
+        sim.tipo = "I";
+        sim.dimen1 = "0";
+        sim.dimen2 = "0";
+        loc.procp = g_procedimiento;
+        loc.clase = "P";
+        loc.dimen1 = "0";
+        loc.dimen2 = "0";
+
+        //buscamos en la definicion actual que no esté repetida
+        bool f = true;
+        list<Simbolo>::iterator i = g_variables.begin();
+        for(; i!=g_variables.end(); i++)
+        {
+            if(i->nombre == ptl->getLexema())
+                f = false;
+        }
+        it=TablaSimbolos.find(ptl->getLexema());
+        if(it == TablaSimbolos.end());
+        else if(f == true)
+        {
+            //cuando la variable ya existe en otro contexto
+            /**la clase del elemento debe ser 'v' que quiere decir que
+            éxclusivamente la variable existe en un contexto global*/
+            bool banderaVariableLocal = true;
+            list<Locales>::iterator i = (it->second).aLocales.begin();
+            for(; i!=(it->second).aLocales.end(); i++)
+            {
+                if(i->procp==g_procedimiento)
+                    banderaVariableLocal = false;
+            }
+
+            if(banderaVariableLocal && (it->second).clase=="V")
+            {
+                //cambiamos el apuntado de g_simboloActual al elemento
+                //del iterador, el cual sólo se debe modificar
+                g_simboloActual = &(it->second);
+                //para indicar que sólo se modificará un símbolo existente
+                nuevoSimbolo = false;
+            }
+            else if(banderaVariableLocal)
+            {
+                it->second.clase = "I";
+                g_simboloActual = &(it->second);
+                nuevoSimbolo = false;
+            }
+            else
+            {
+                //ERROR:redefiniendo variable
+                lex->nuevoError("Intento de redefinicion de variable local o un parámetro");
+                finalizar();
+            }
+        }
+        else
+        {
+            lex->nuevoError("Intento de redefinicion de variable");
+            finalizar();
+        }
+
+
         ptl = lex->siguienteToken();
+        if(nuevoSimbolo)
+        {
+            Locales * aploc;
+            loc.tipo="";
+            sim.aLocales.push_back(loc);
+            string nom = sim.nombre;
+            g_nombresSimbolos.push_back(nom);
+            TablaSimbolos.insert(std::pair<string,Simbolo>(nom,sim));
+            Simbolo * simb = &(TablaSimbolos.find(sim.nombre)->second);
+            aploc = &(simb->aLocales.back());
+            g_locales.push_back(aploc);
+        }
+        else
+        {
+            it->second.aLocales.push_back(loc);
+            g_localActual = &(it->second.aLocales.back());
+            g_locales.push_back(g_localActual);
+        }
+
         if(ptl->getLexema() == ",")
         {
             ptl = lex->siguienteToken();
             pars();
         }
-        else
-        {
-            if(esTipoDeDato(ptl->getLexema()))
-            {
-                ptl = lex->siguienteToken();
-                if(ptl->getLexema() == ",")
-                {
-                    ptl = lex->siguienteToken();
-                    pars();
-                }
-            }
-            else
-            {
-                lex->nuevoError("Esperaba un tipo de dato");
-            }
-        }
+
+
+
     }
     else
     {
@@ -806,6 +823,7 @@ pharser::block()
 void
 pharser::estatutos()
 {
+    g_cantDimensiones = 0;
     if(ptl->getLexema() != "}" &&
             ptl->getLexema() != "valor" && ptl->getLexema() != "defecto")
     {
@@ -833,9 +851,22 @@ pharser::estatutos()
 void
 pharser::comando()
 {
+    g_cantDimensiones = 0;
     string s = ptl->getLexema();
     if(ptl->getLexema() == "interrumpe" || ptl->getLexema() == "continua")
     {
+        /*if(ptl->getLexema() == "interrumpe" && g_dondeEstoy!=DESDE && g_dondeEstoy!=CASO){
+            lex->nuevoError("Sólo se permite utilizar \"interrumpe\" dentro de un ciclo o un caso");
+        }else if(ptl->getLexema() == "continua" && g_dondeEstoy!= DESDE){
+            lex->nuevoError("Sólo se permite utilizar \"continua\" dentro de un ciclo");
+        }*/
+
+        if(ptl->getLexema() == "interrumpe" && !g_interrumpe_flag){
+            lex->nuevoError("Sólo se permite utilizar \"interrumpe\" dentro de un ciclo o un caso");
+        }else if(ptl->getLexema() == "continua" && !g_continua_flag){
+            lex->nuevoError("Sólo se permite utilizar \"continua\" dentro de un ciclo");
+        }
+
         ptl = lex->siguienteToken();
     }
     else if(ptl->getLexema() == "fmt")
@@ -849,18 +880,28 @@ pharser::comando()
     else if(ptl->getLexema() == "regresa")
     {
         regresa();
+        g_regresa_flag = true;
     }
     else if(ptl->getLexema() == "si")
     {
+        int tmp=g_dondeEstoy;
+        g_dondeEstoy = SI;
         si();
+        g_dondeEstoy = tmp;
     }
     else if(ptl->getLexema() == "desde")
     {
+        int tmp=g_dondeEstoy;
+        g_dondeEstoy = DESDE;
         desde();
+        g_dondeEstoy = tmp;
     }
     else if(ptl->getLexema() == "caso")
     {
+        int tmp=g_dondeEstoy;
+        g_dondeEstoy = CASO;
         caso();
+        g_dondeEstoy = tmp;
     }
     else if(ptl->getToken() == "ide" )
     {
@@ -885,7 +926,8 @@ pharser::comando()
     else if(ptl->getLexema() != ";" && ptl->getLexema() != "}")
     {
         ptl = lex->siguienteToken();//para evitar ciclos infinitos
-        lex->nuevoError("Comando no válido");
+        lex->nuevoError("Comando no válido, revise que haya escrito correctamente el nombre del comando");
+        finalizar();
     }
 
 }//fin de comando
@@ -893,44 +935,129 @@ pharser::comando()
 void
 pharser::asigna()
 {
-    if(ptl->getLexema() == "[")
-        dimen();
-    if(ptl->getLexema() == ":=" || ptl->getLexema() == "=")
-    {
-        ptl = lex->siguienteToken();
-        expr();
+    string nom = lex->tokenAnterior()->getLexema();
+    string e1,e2,op;
+    parTokenLexema * ant = lex->tokenAnterior();
+    unordered_map<string,Simbolo>::iterator it;
+    if((it=TablaSimbolos.find(ant->getLexema())) != TablaSimbolos.end()){
+        g_sim = it->second;
+        list<Locales>::iterator i = (it->second).aLocales.begin();
+        bool eslocal = false;
+        for(;i!=(it->second).aLocales.end();i++){
+            if(i->procp==g_procedimiento){
+                eslocal = true;
+                break;
+            }
+        }
+        if(eslocal){
+            //cuando si existe de forma local
+            e1 = it->second.obtenTipo(g_procedimiento);
+        }else if(it->second.clase=="I"){
+            lex->nuevoError("La variable \""+ant->getLexema()+"\" no existe en este contexto");
+        }else{
+            //si está definida globalmente
+            if(it->second.clase!="C"){
+                if(it->second.clase == "F"){
+                    lex->nuevoError("El lado izquierdo de una asignacion no puede ser una función");
+                }else{
+                    //cuando es una variable
+                    e1 = it->second.obtenTipo(g_procedimiento);
+                }
+            }else{
+                //si es una constante
+                lex->nuevoError("La constante \""+ant->getLexema()+"\" no puede cambiar su valor");
+            }
+        }
+
+        if(ptl->getLexema() == "["){
+            g_cantDimensiones = 0;
+            dimen();
+        }else{
+            if(dameSimboloDeTabla(nom)->second.obtenNDimension(g_procedimiento,1)!="0"){
+                lex->nuevoError("La variable fue declarado como arreglo y se intentó acceder a ella como variable normal");
+            }
+        }
+        if(ptl->getLexema() == ":=" || ptl->getLexema() == "=")
+        {
+            op = ptl->getLexema();
+            ptl = lex->siguienteToken();
+            g_fcall = true;
+            g_fpar = true;
+            g_nPar = 0;
+            expr();
+            e2 = g_tipo;
+            //g_tipo = TablaTipos::validaTipos(e1,op,e2,(&mostrarErrorTipos));
+            /*Envio como parámetro NULL en el puntero a la función
+            para yo indicar un error más pesonalizado*/
+            g_tipo = TablaTipos::validaTipos(e1,op,e2,NULL);
+            if(g_tipo == "ERR"){
+                lex->nuevoError("No se puede asignar un valor del tipo "+expecificaTipoDato(e2)+" a uno "+
+                    expecificaTipoDato(e1));
+            }
+        }
+        else
+            lex->nuevoError("Esperaba \":=\" para realizar asignación");
+    }else{
+        lex->nuevoError("La variable \""+ant->getLexema()+"\" no existe en este contexto");
     }
-    else
-        lex->nuevoError("Esperaba \":=\" para realizar asignación");
 } //fin de asigna
 
 void // posiblemente mal
 pharser::lfunc()
 {
-    if(ptl->getLexema() == "(")
-    {
-        ptl = lex->siguienteToken();
-        if(ptl->getLexema() != ")")
-            uparam();
-        if(ptl->getLexema() == ")")
+    string nom = lex->tokenAnterior()->getLexema();
+    g_string_global = "";
+    g_string_global1 = "";
+    Simbolo sim;
+    if(existeSimbolo(nom))
+        sim = dameSimboloDeTabla(nom)->second;
+    if(existeSimbolo(nom) && sim.clase=="F"){
+        if(ptl->getLexema() == "(")
         {
             ptl = lex->siguienteToken();
+            if(ptl->getLexema() != ")")
+            {
+                uparam();
+            }
+            /*Error en los tipos y cantidad de parámetros*/
+            if(sim.nombreFuncion != nom+g_string_global){
+                lex->nuevoError("No existe una función llamada "+ nom + " que tenga ("+g_string_global1+") como parámetros");
+                finalizar();
+            }
+            if(ptl->getLexema() == ")")
+            {
+                ptl = lex->siguienteToken();
+            }
+            else
+            {
+                lex->nuevoError("Esperaba \")\", llamada a función");
+            }
         }
         else
         {
-            lex->nuevoError("Esperaba \")\", llamada a función");
+            lex->nuevoError("Esperaba \"(\" para los param.");
         }
-    }
-    else
-    {
-        lex->nuevoError("Esperaba \"(\" para los param.");
+    }else{
+        lex->nuevoError("No existe la función "+nom+" que se intentó llamar");
     }
 }//fin de lfunc
 
 void
 pharser::uparam()
 {
+    string aux1,aux2;
+    g_fcall = true;
+    g_fpar = true;
+    g_nPar = 0;
+    aux1 = g_string_global;
+    aux2 = g_string_global1;
     expr();
+    /*g_string_global += "$"+representaTipoDato(ptl->getToken());
+    g_string_global1 += ptl->getToken()+",";*/
+    g_string_global = aux1;
+    g_string_global1 = aux2;
+    g_string_global += "$"+g_tipo;
+    g_string_global1 += expecificaTipoDato(ptl->getToken())+",";
     if(ptl->getLexema() == ",")
     {
         ptl = lex->siguienteToken();
@@ -955,6 +1082,9 @@ pharser::imprime()
                     do
                     {
                         ptl = lex->siguienteToken();
+                        g_fcall = true;
+                        g_nPar = 0;
+                        g_fpar = true;
                         expr();
                     }
                     while(ptl->getLexema() == ",");
@@ -987,22 +1117,6 @@ pharser::imprime()
 }
 
 void
-pharser::expr()
-{
-    opy();
-    if(ptl->getLexema() == "||")
-    {
-        ptl = lex->siguienteToken();
-        expr();
-    }
-    /*if(ptl->getToken() == "dec")
-        ptl = lex->siguienteToken();
-    else
-        lex->nuevoError("Expresión inválida");
-    string s = ptl->getLexema();*/
-} //fin de expr
-
-void
 pharser::lee()
 {
     if(ptl->getLexema() == "con")
@@ -1019,13 +1133,27 @@ pharser::lee()
                     ptl = lex->siguienteToken();
                     if(ptl->getToken() == "ide")
                     {
-                        ptl = lex->siguienteToken();
-                        if(ptl->getLexema() == "[")
-                            dimen();
-                        if(ptl->getLexema() == ")")
-                            ptl = lex->siguienteToken();
-                        else
-                            lex->nuevoError("Faltó cerrar instrucción \")\"");
+                        string nom = ptl->getLexema();
+                        unordered_map<string,Simbolo>::iterator it;
+
+                        if((it=TablaSimbolos.find(nom)) != TablaSimbolos.end()){
+                            g_sim = it->second;
+                            if(g_sim.obtenClase(g_procedimiento) != "C"){
+                                ptl = lex->siguienteToken();
+                                if(ptl->getLexema() == "["){
+                                    g_cantDimensiones = 0;
+                                    dimen();
+                                }
+                                if(ptl->getLexema() == ")")
+                                    ptl = lex->siguienteToken();
+                                else
+                                    lex->nuevoError("Faltó cerrar instrucción \")\"");
+                            }else{
+                                lex->nuevoError("No se puede almacenar un valor en una constante");
+                            }
+                        }else{
+                            lex->nuevoError("La variable \""+nom+"\" no se ha declarado");
+                        }
                     }
                     else
                         lex->nuevoError("Esperaba el nombre de una variable");
@@ -1046,23 +1174,51 @@ pharser::lee()
 void
 pharser::dimen()
 {
-    if(g_cantDimensiones < 2){
+    if(g_cantDimensiones == 0)
+        g_sim_uni = g_sim;
+    g_cantDimensiones++;
+    if(g_cantDimensiones <= 2)
+    {
         if(ptl->getLexema() == "[")
         {
-            ptl = lex->siguienteToken();
-            expr();
-            if(ptl->getLexema() == "]")
-            {
+            if(g_sim_uni.obtenNDimension(g_procedimiento,g_cantDimensiones) != "0"){
                 ptl = lex->siguienteToken();
-                if(ptl->getLexema() == "[")
-                    dimen();
+                if(ptl->getToken()!="del"){
+                    g_fcall = true;
+                    g_nPar = 0;
+                    g_fpar = true;
+                    expr();
+                    if(g_tipo!="E"){
+                        lex->nuevoError("Sólo puede indicar numeros enteros en las dimensiones de un arreglo");
+                    }
+                    if(ptl->getLexema() == "]")
+                    {
+                        ptl = lex->siguienteToken();
+                        if(ptl->getLexema() == "["){
+
+                            dimen();
+                        }else{
+                            if(g_sim_uni.obtenNDimension(g_procedimiento,g_cantDimensiones + 1)!="0" && g_cantDimensiones + 1 <= 2){
+                                lex->nuevoError("Hacen falta indicar dimensiones para una variable de "+to_string(g_cantDimensiones + 1)+" dimensiones");
+                            }
+                        }
+                    }
+                    else{
+                        lex->nuevoError("Esperaba \"]\" para cerrar dimension");
+                    }
+                }else{
+                    lex->nuevoError("El valor de la dimensión deber ser entero, puede comprobar que no haya dejado \"[]\"");
+                }
+            }else{
+                lex->nuevoError("Se ha intentado indicar la dimension "+to_string(g_cantDimensiones + 1)+
+                    " pero, la variable es de "+to_string(g_cantDimensiones));
             }
-            else
-                lex->nuevoError("Esperaba \"]\" para cerrar dimension");
         }
         else
             lex->nuevoError("Esperaba \"[\" para indicar dimensiones");
-    }else{
+    }
+    else
+    {
         lex->nuevoError("El máximo de dimensiones a indicar es \"2\"");
     }
 }//fin de dimen
@@ -1070,28 +1226,58 @@ pharser::dimen()
 void
 pharser::dimenDef()
 {
-    if(g_cantDimensiones < 2){
+    if(g_cantDimensiones < 2)
+    {
+        string nom = lex->tokenAnterior()->getLexema();
         if(ptl->getLexema() == "[")
         {
-            ptl = lex->siguienteToken();
+           ptl = lex->siguienteToken();
             //expr();
             //aquí solo se aceptan enteros
-            if(ptl->getToken() == "dec"){
-                if(g_cantDimensiones == 0){
-                    if(g_simboloActual!=NULL){
-                        g_simboloActual->dimen1 = ptl->getLexema();
-                    }else{
-                        g_localActual->dimen1 = ptl->getLexema();
-                    }
-                }else if(g_cantDimensiones == 1){
-                    if(g_simboloActual!=NULL){
-                        g_simboloActual->dimen2 = ptl->getLexema();
-                    }else{
-                        g_localActual->dimen2 = ptl->getLexema();
-                    }
+
+            if(ptl->getToken() == "dec" || ptl->getToken()=="ide")
+            {
+                string nom,c,t;
+                nom = c = t = "";
+                if(ptl->getToken() == "ide"){
+                    nom = ptl->getLexema();
+                    c = dameSimboloDeTabla(nom)->second.obtenClase(g_procedimiento);
+                    t = dameSimboloDeTabla(nom)->second.obtenTipo(g_procedimiento);
+
                 }
+                if(ptl->getToken() == "dec" || (c == "C" && t == "E")){
+                    if(g_cantDimensiones == 0)
+                    {
+                        if(g_simboloActual!=NULL)
+                        {
+                            g_simboloActual->dimen1 = ptl->getLexema();
+                        }
+                        else
+                        {
+                            g_localActual->dimen1 = ptl->getLexema();
+                        }
+                    }
+                    else if(g_cantDimensiones == 1)
+                    {
+                        if(g_simboloActual!=NULL)
+                        {
+                            g_simboloActual->dimen2 = ptl->getLexema();
+                        }
+                        else
+                        {
+                            g_localActual->dimen2 = ptl->getLexema();
+                        }
+                    }
+                    ptl = lex->siguienteToken();
+                }else{
+                    ptl = lex->siguienteToken();
+                    lex->nuevoError("El tamaño de las dimensiones debe ser indicado como un valor entero");
+                }
+            }
+            else
+            {
+                /*adelanteamos para visualizar el error correctamente*/
                 ptl = lex->siguienteToken();
-            }else{
                 lex->nuevoError("El tamaño de las dimensiones debe ser indicado como un valor entero");
             }
 
@@ -1107,8 +1293,10 @@ pharser::dimenDef()
         }
         else
             lex->nuevoError("Esperaba \"[\" para indicar dimensiones");
-    }else{
-        lex->nuevoError("El máximo de dimensiones a indicar es \"2\"");
+    }
+    else
+    {
+        lex->nuevoError("Sólo se pueden utilizar \"2\" dimensiones para un arreglo");
     }
 }//fin de dimenDef
 
@@ -1117,10 +1305,24 @@ pharser::regresa()
 {
     if(ptl->getLexema() == "regresa")
     {
+        string ret = dameSimboloDeTabla(g_procedimiento)->second.tipo;
         ptl = lex->siguienteToken();
         if(ptl->getToken() != "del")
         {
+            string tipo;
+            g_fcall = true;
+            g_fpar = true;
+            g_nPar = 0;
             expr();
+            tipo = g_tipo;
+            if(tipo!=ret){
+                lex->nuevoError("No puedes regresar un \""+expecificaTipoDato(tipo)+"\" en una función que regresa \""+
+                                expecificaTipoDato(ret)+"\"");
+            }
+        }else{
+            if(ret != "I"){
+                lex->nuevoError("No puedes regresar vacío, ya que la funcíon debe regresar "+expecificaTipoDato(ret));
+            }
         }
     }
     else
@@ -1133,7 +1335,13 @@ pharser::si()
     if(ptl->getLexema() == "si")
     {
         ptl = lex->siguienteToken();
+        g_fcall = true;
+        g_fpar = true;
+        g_nPar = 0;
         expr();
+        if(g_tipo != "L"){
+            lex->nuevoError("La expresión de un \"si\" siempre debe ser de tipo lógica");
+        }
         block();
         string s = ptl->getLexema();
         if(ptl->getLexema() == "sino")
@@ -1151,6 +1359,8 @@ pharser::desde()
 {
     if(ptl->getLexema() == "desde")
     {
+        g_interrumpe_flag = true;
+        g_continua_flag = true;
         ptl = lex->siguienteToken();
         if(ptl->getLexema() != ";")
         {
@@ -1185,6 +1395,9 @@ pharser::desde()
         if(ptl->getLexema() != ";")
         {
             expr();
+            if(g_tipo!="L"){
+                lex->nuevoError("La expresión de condición de un \"desde\" siempre debe ser de tipo lógica");
+            }
         }
 
         ptl = lex->siguienteToken();
@@ -1219,6 +1432,8 @@ pharser::desde()
             while(ptl->getToken() == "ide");
         }
         block();
+        g_interrumpe_flag = false;
+        g_continua_flag = false;
     }
     else
         lex->nuevoError("Esperaba \"para ciclo\"");
@@ -1229,6 +1444,7 @@ pharser::caso()
 {
     if(ptl->getLexema() == "caso")
     {
+        g_interrumpe_flag = true;
         ptl = lex->siguienteToken();
         if(ptl->getToken() == "ide")
         {
@@ -1281,6 +1497,7 @@ pharser::caso()
                     estatutos();
                     if(ptl->getLexema() == "}")
                     {
+                        g_interrumpe_flag = false;
                         ptl = lex->siguienteToken();
                     }
                     else if(ptl->getLexema() != "valor" && ptl->getLexema() != "defecto")
@@ -1308,114 +1525,18 @@ pharser::caso()
 
 }//fin del caso
 
-void
-pharser::opy()
-{
-    opno();
-    if(ptl->getLexema() == "&&")
-    {
-        ptl = lex->siguienteToken();
-        opy();
-    }
-}//fin de opy
-
 
 void
-pharser::opno()
-{
-    if(ptl->getLexema() == "!")
-        ptl= lex->siguienteToken();
-    oprel();
-}//fin de opno
-
-void
-pharser::oprel()
-{
-    suma();
-    if(ptl->getLexema() == "<" || ptl->getLexema() == ">" ||
-            ptl->getLexema() == "<=" || ptl->getLexema() == ">=" ||
-            ptl->getLexema() == "!=" || ptl->getLexema() == "==")
-    {
-        ptl = lex->siguienteToken();
-        oprel();
+pharser::mostrarErrorTipos(string a,string b, string c,string cad){
+    if(cad==""){
+        globalPharser->lex->nuevoError("La combinación <"+globalPharser->expecificaTipoDato(a)+
+        " "+b+" "+globalPharser->expecificaTipoDato(c)+"> no determina un tipo válido");
+    }else{
+        globalPharser->lex->nuevoError(cad+" <"+globalPharser->expecificaTipoDato(a)+
+        " "+b+" "+globalPharser->expecificaTipoDato(c)+">");
     }
-}//fin de oprel
-
-void
-pharser::suma()
-{
-    multi();
-    if(ptl->getLexema() == "+" || ptl->getLexema() == "-")
-    {
-        ptl = lex->siguienteToken();
-        suma();
-    }
-}//fin de suma
-
-void
-pharser::multi()
-{
-    expo();
-    if(ptl->getLexema() == "*" || ptl->getLexema() == "/" ||
-            ptl->getLexema() == "%")
-    {
-        ptl = lex->siguienteToken();
-        multi();
-    }
-}//fin de multi
-
-void
-pharser::expo()
-{
-    signo();
-    if(ptl->getLexema() == "^")
-    {
-        ptl = lex->siguienteToken();
-        expo();
-    }
-}//fin de expo
-
-void
-pharser::signo()
-{
-    if(ptl->getLexema() == "-")
-        ptl=lex->siguienteToken();
-    termino();
-}//fin de signo
-
-void
-pharser::termino()
-{
-    if(ptl->getLexema() == "(")
-    {
-        ptl = lex->siguienteToken();
-        expr();
-        if(ptl->getLexema() == ")")
-            ptl = lex->siguienteToken();
-        else
-            lex->nuevoError("Esperaba \")\" para cerrar expresion");
-
-    }
-    else if(ptl->getToken() == "cca" || ptl->getToken() == "cal" ||
-            ptl->getToken() == "dec" || ptl->getToken() == "oct" ||
-            ptl->getToken() == "hex" || ptl->getToken() == "rea" ||
-            lex->esConstanteLogica(ptl->getLexema()))
-    {
-        ptl = lex->siguienteToken();
-    }
-    else if(ptl->getToken() == "ide")
-    {
-        ptl = lex->siguienteToken();
-        if(ptl->getLexema() == "(")
-            lfunc();
-        else if(ptl->getLexema() == "[")
-            dimen();
-    }
-    else
-    {
-        lex->nuevoError("Token no válido para expresión");
-    }
-}//fin de termino
+    globalPharser->finalizar();
+}
 
 /*funciona igual que lfunc ya que la verificacion
 del identificador se hace antes de entrar a lfunc o a
@@ -1423,89 +1544,27 @@ tlfunc*/
 void
 pharser::tlfunc()
 {
-    if(ptl->getLexema() == "(")
-    {
-        ptl = lex->siguienteToken();
-        if(ptl->getLexema() != ")")
-            uparam();
-        else
+    parTokenLexema * ant = lex->tokenAnterior();
+    string nom = ant->getLexema();
+    if(existeSimbolo(nom) && dameSimboloDeTabla(nom)->second.clase=="F"){
+        if(ptl->getLexema() == "(")
+        {
             ptl = lex->siguienteToken();
-    }
-    else
-    {
-        lex->nuevoError("Esperaba \"(\" para indicar parámetros");
+            if(ptl->getLexema() != ")")
+                uparam();
+            else
+                ptl = lex->siguienteToken();
+        }
+        else
+        {
+            lex->nuevoError("Esperaba \"(\" para indicar parámetros");
+        }
+    }else{
+        lex->nuevoError("No existe la función "+nom);
+        finalizar();
     }
 }//fin tlfunc
 
 
 /*fin del pharser -------------------------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------------------------*/
-
-lexico *
-pharser::getLexico()
-{
-    return lex;
-}
-
-bool
-pharser::esTipoDeDato(string c)
-{
-    if(c != "caracter" && c != "entero" &&
-            c != "real" && c != "alfabetico" &&
-            c != "enteross" && c != "logico")
-        return false;
-    return true;
-}
-
-void
-pharser::setEditor(bool e)
-{
-    getLexico()->setEditor(e);
-}
-
-void
-pharser::finalizar()
-{
-    if(!getLexico()->getEditor())
-        cout << endl << "\n\nse leyeron: " << getLexico()->getLineas() << " lineas" << endl;
-    getLexico()->imprimeErrores();
-    imprimeTablaDeSimbolos();
-    exit(EXIT_SUCCESS);
-}//fin de finalizar
-
-string
-pharser::representaTipoDato(const string d)
-{
-    if(d == "real")
-        return "R";
-    if(d == "entero")
-        return "E";
-    if(d == "logico")
-        return "L";
-    if(d == "alfabetico")
-        return "A";
-    if(d == "caracter")
-        return "C";
-    return "I";
-}
-
-void
-pharser::imprimeTablaDeSimbolos()
-{
-    cout << "\n\n************************************************"<<endl;
-    cout << "\t\tTabla de Simbolos" << endl;
-    cout << "************************************************"<<endl;
-    unordered_map<string,Simbolo> tmpMap;
-    std::unordered_map<string,Simbolo>::iterator it = TablaSimbolos.begin();
-    for(; it!=TablaSimbolos.end(); it++)
-    {
-        //cout << (it->second).formateaSimbolo()<<endl;
-        tmpMap.insert(*it);
-    }
-
-    it = tmpMap.begin();
-    for(; it!=TablaSimbolos.end(); it++)
-    {
-        cout << (it->second).formateaSimbolo()<<endl;
-    }
-}

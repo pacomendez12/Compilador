@@ -1,13 +1,103 @@
 paquete principal
 
 importar "fmt"
-var a[10][10],b[5][10] entero
-funcion holaMundo(){
-	var a,b real;
-	fmt.Imprimenl("Hola");
+
+const (PI = 3.1416 
+MAX = 30
+MIN = 0
+ERROR = "ERROR DE CODIGO"
+ENDL = '\n'
+)
+
+var (a[5][10],bes[5],x,z entero
+	zz real
+	vari2 logico
+	matriz[2][2] entero
+)
+
+funcion fu()entero{
+	con.Lee(matriz[x][z]);
+	Si(i == 7) {
+	
+	}
+	regresa 0;
 }
 
-funcion holaMund(){
+funcion vac() entero{
+	z := fu();
+	z := bes[3];
+	
+	regresa 5;
+	zz := a[5][z*9+6-8*7];
+	
+}
+
+funcion holaMundo(a,b entero) logico{
+	vari2 := (5 + 5.5) >= (1+5);
+	z := (5+5)+(5+8+6)-(8*9)+5;
+	//z:= (5);
+	//fmt.Imprimenl(verdadero || vari2);
+	regresa verdadero;
+}
+
+funcion ho(el logico) entero{
+	//el:= el+5;
+	el:=holaMundo(5,5);
+	con.Lee(el);
+	regresa 5*8
+}
+
+funcion log(al logico) logico{
+	z := ho(holaMundo(5,4));
 	var a entero;
+	var b entero;
+	var algo entero;
+	b := ho(verdadero);
+	//return verdadero;
+	algo:=85+659*7;
+	al:=verdadero;
+	
+	caso a{
+		valor 1:
+		interrumpe;
+		valor 2:
+			a:=5*98;
+		interrumpe;
+	}
+	/*desde ;(5+5) > (35);{
+		//interrumpe;
+	}*/
+	
+	si a >= b{}
+	regresa verdadero || falso;
 }
 
+funcion hola(){
+	var vari logico;
+	//ho(log(verdadero));
+	//ho(5 + 5.5);
+	zz:= 5+5;
+}
+
+funcion aa(a,b entero) entero{
+	z:=5;
+	fmt.Imprime("hola");
+	var x,y entero;
+	regresa 5;
+}
+
+funcion aaa() entero{
+	z:=aa(5,3);
+	regresa z+5;
+}
+
+funcion bla(a,b real){
+	var (c,d entero
+	x,j real);
+	//PIO:=5;
+	x:=aaa()*a;
+}
+
+funcion principal(){
+	
+}

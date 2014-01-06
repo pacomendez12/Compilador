@@ -4,6 +4,7 @@ string
 Simbolo::formateaSimbolo(){
     string aux;
     aux = nombre+",";
+    //aux += nombreFuncion+",";
     aux += clase+",";
     aux += tipo+",";
     aux += dimen1+",";
@@ -37,7 +38,60 @@ Locales::formateaLocal(){
 }
 
 Locales::Locales(){
-    dimen1 = 100;
-    dimen2 = 200;
-    clase = "T";
+    dimen1 = "0";
+    dimen2 = "0";
+    clase  = "I";
+}
+
+Simbolo::Simbolo(){
+    nombre = "";
+    nombreFuncion = "";
+}
+
+string
+Simbolo::obtenTipo(string proc){
+    list<Locales>::iterator i = aLocales.begin();
+    for(;i!=aLocales.end();i++){
+        if(i->procp == proc)
+            return i->tipo;
+    }
+    if(tipo!="I")
+        return tipo;
+    else
+    return "";
+}
+
+string
+Simbolo::obtenClase(string proc){
+    list<Locales>::iterator i = aLocales.begin();
+    for(;i!=aLocales.end();i++){
+        if(i->procp == proc)
+            return i->clase;
+    }
+    if(tipo!="I")
+        return clase;
+    else
+    return "";
+}
+
+string
+Simbolo::obtenNDimension(string proc,int ndim){
+    list<Locales>::iterator i = aLocales.begin();
+    for(;i!=aLocales.end();i++){
+        if(i->procp == proc){
+            if(ndim == 1)
+                return i->dimen1;
+            else if(ndim == 2){
+                return i-> dimen2;
+            }
+        }
+    }
+    if(tipo!="I"){
+        if(ndim == 1)
+            return dimen1;
+        else if(ndim == 2){
+            return dimen2;
+        }
+    }
+    return "";
 }

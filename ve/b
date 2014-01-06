@@ -8,7 +8,7 @@ const (PI = 3.141592
 var ( i, j, k, n, vector[MAX] entero
       r, s, t real
       alfa, beta alfabetico
-      log1, log2 logico ) 
+      log1, log2 logico )
 
 var matriz[MAX][MAX] entero
 //Factoriai Recursivo
@@ -24,7 +24,7 @@ prueba ***/
 funcion FacIter( n entero) entero {
   var facto entero;
   facto := 1;
-  desde i := n ; i > 2 ; i := i - 1 {
+  desde i := n ; j > 2 ; i := i - 1 {
      facto := facto * i
   } 
   regresa facto
@@ -40,7 +40,7 @@ funcion Selecciona( ) {
          fmt.Imprime("Dame un numero: ");
          con.Lee( n );
          fmt.Imprime("Factorial 1]Recursivo 2]Iterativo 3]Salir: ");
-         con.Lee( opc )
+         con.Lee( opc );
          si opc == 3 { interrumpe }
          caso opc {
              valor 1: fmt.Imprimenl("Factorial Recursivo de ", n, " es= ", FacRec( n ) );
@@ -65,15 +65,15 @@ funcion Test() {
    }
    i:=1;
    desde ; ; i := i + 1 {
-      fmt.Imprimnl("i= ", i);
-      Si (i = 7) { interrumpe }
+      fmt.Imprimenl("i= ", i);
+      si(i == 7) { interrumpe }
    }
 }
 
 funcion LeeVec(k entero) {
    desde i:=1; i <= k; i := i + 1 {
       fmt.Imprime("Vector[", i, "]: ");
-      con.Lee(Vector[i]);
+      con.Lee(vector[i]);
    }
 }
 
@@ -82,9 +82,9 @@ var temp entero;
    desde i := 1; i < k ; i := i + 1 {
       desde j := i + 1; i <= k; j := j + 1 {
          si vector[i] > vector[j] {
-                Temp := Vector[i];
-                Vector[i] := Vector[j];
-                Vector[j] := Temp;
+                temp := vector[i];
+                vector[i] := vector[j];
+                vector[j] := temp;
          }
        }
     }
@@ -100,7 +100,7 @@ funcion LeeMat(k entero) {
     desde i := 1; i <= k; i := i + 1 {
         desde j:=1; j <= k; j := j + 1 {
            fmt.Imprime("Matriz[", i, "][", j, "]: ");
-           con.Lee(Matriz[i][j])
+           con.Lee(matriz[i][j])
          }
     }
 }
@@ -108,7 +108,7 @@ funcion LeeMat(k entero) {
 funcion MulMat(k,v entero) {
    desde i:=1; i <= k; i:= i + 1 {
          desde j:=1; j <= k; j:= j + 1 {
-              Matriz[i][j] := Matriz[i][j] * v
+              matriz[i][j] := matriz[i][j] * v
          }
    }
 }
@@ -116,7 +116,7 @@ funcion MulMat(k,v entero) {
 funcion ImpMat(k entero) {
      desde i:=1; i <= k; i := i + 1 {
            desde j:=1; i <= k; j := j + 1 {
-                 fmt.Imprimenl( "Matriz[", i, "][", j, "]= ", Matriz[i][j] )
+                 fmt.Imprimenl( "Matriz[", i, "][", j, "]= ", matriz[i][j] )
             }
      }
 }
@@ -143,8 +143,8 @@ funcion principal() {
     ImpMat( n );
     Test();
     fmt.Imprime("Dame tu nombre: ");
-    fmt.Lee(alfa);
+    con.Lee(alfa);
     fmt.Imprime("Dame tu Apellido: ");
-    fmt.Lee(beta);
+    con.Lee(beta);
     fmt.Imprimenl("Hola ", Concat(alfa, beta), " ya pasaste!!!");
 }

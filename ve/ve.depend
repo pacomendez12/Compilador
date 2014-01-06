@@ -1,11 +1,11 @@
 # depslib dependency file v1.0
-1385432013 source:/home/pacomendez/compiladores/ve/main.cpp
+1388990851 source:/home/pacomendez/compiladores/ve/main.cpp
 	<iostream>
 	<cstring>
 	<cstdlib>
 	"pharser.h"
 
-1386691765 /home/pacomendez/compiladores/ve/lexico.h
+1388973787 /home/pacomendez/compiladores/ve/lexico.h
 	<string>
 	<cstdio>
 	<cstdlib>
@@ -16,7 +16,7 @@
 	"parTokenLexema.h"
 	"Errores.h"
 
-1386691777 source:/home/pacomendez/compiladores/ve/lexico.cpp
+1388973793 source:/home/pacomendez/compiladores/ve/lexico.cpp
 	<sstream>
 	<cstdio>
 	"lexico.h"
@@ -45,10 +45,10 @@
 	<string>
 	"definiciones.h"
 
-1388797733 source:/home/pacomendez/compiladores/ve/pharser.cpp
+1388997627 source:/home/pacomendez/compiladores/ve/pharser.cpp
 	"pharser.h"
 
-1386694837 /home/pacomendez/compiladores/ve/pharser.h
+1388998502 /home/pacomendez/compiladores/ve/pharser.h
 	<unordered_map>
 	<string>
 	<csignal>
@@ -59,16 +59,29 @@
 	"lexico.h"
 	"parTokenLexema.h"
 	"TablaDeSimbolos.h"
+	"tipos.h"
 
 1383076359 source:/home/pacomendez/compiladores/ve/Errores.cpp
 	"Errores.h"
 
 1385405641 /home/pacomendez/compiladores/ve/definiciones.h
 
-1388116922 /home/pacomendez/compiladores/ve/TablaDeSimbolos.h
+1388901819 /home/pacomendez/compiladores/ve/TablaDeSimbolos.h
 	<list>
 	<string>
 
-1388116903 source:/home/pacomendez/compiladores/ve/TablaDeSimbolos.cpp
+1388971993 source:/home/pacomendez/compiladores/ve/TablaDeSimbolos.cpp
 	"TablaDeSimbolos.h"
+
+1388952257 /home/pacomendez/compiladores/ve/tipos.h
+	<string>
+
+1388968724 source:/home/pacomendez/compiladores/ve/tipos.cpp
+	"tipos.h"
+
+1388994116 source:/home/pacomendez/compiladores/ve/pharser_util.cpp
+	"pharser.h"
+
+1388998381 source:/home/pacomendez/compiladores/ve/pharser_expr.cpp
+	"pharser.h"
 
