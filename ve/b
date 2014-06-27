@@ -1,5 +1,5 @@
 paquete principal
-importar ( "fmt" 
+importar ( "fmt"
 "con" )
 
 const (PI = 3.141592

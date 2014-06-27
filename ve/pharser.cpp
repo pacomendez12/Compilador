@@ -345,8 +345,10 @@ pharser::varsAux()
         }
     }//fin del while que agrega variables del mismo tipo
 
-    if(!esTipoDeDato(ptl->getLexema()))
+    if(!esTipoDeDato(ptl->getLexema())){
+        ptl = lex->siguienteToken();
         lex->nuevoError("Se esperaba un tipo de dato");
+    }
     string tipoDeDato = ptl->getLexema();
     //cambiamos el valor del tipo
     if(simboloGlobal)
@@ -1147,7 +1149,7 @@ pharser::lee()
                                 if(ptl->getLexema() == ")")
                                     ptl = lex->siguienteToken();
                                 else
-                                    lex->nuevoError("Faltó cerrar instrucción \")\"");
+                                    lex->nuevoError("La función con.Lee sólo debe recibir una variable \"con.Lee(<variable>)\"");
                             }else{
                                 lex->nuevoError("No se puede almacenar un valor en una constante");
                             }
@@ -1351,7 +1353,9 @@ pharser::si()
         }
     }
     else
+    {
         lex->nuevoError("Esperaba \"si\" para condicion");
+    }
 }//fin del si
 
 void
